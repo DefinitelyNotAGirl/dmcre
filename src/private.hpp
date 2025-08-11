@@ -4,7 +4,11 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
+#ifdef _WIN32
+	#include <windows.h>
+#else
+	#include <unistd.h>
+#endif
 #include <vector>
 
 #include <dmcre/fs.hpp>

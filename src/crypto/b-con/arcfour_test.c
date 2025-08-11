@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include "arcfour.h"
+#include <string.h>
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int rc4_test()

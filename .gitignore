@@ -3,6 +3,7 @@
 
 # output
 build/
+bin/
 
 # temporary files
 BuildScript.temp

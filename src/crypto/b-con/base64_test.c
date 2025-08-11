@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include "base64.h"
+#include <string.h>
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int base64_test()

@@ -5,7 +5,7 @@ using namespace dmcre;
 
 #include <iostream>
 
-extern "C" Module* module(dmcre::Core& core,void* in) {
+extern "C" __declspec(dllexport) Module* module(dmcre::Core& core,void* in) {
 	static Module2 _m;
 	_m.use = []{
 		std::cout << "module function used!" << std::endl;

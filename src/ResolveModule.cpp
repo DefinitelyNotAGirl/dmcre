@@ -1,9 +1,12 @@
 #include <string>
 #include "private.hpp"
+#include <iostream>
 
 std::string ResolveModulePath(const std::string& specifier) {
+	std::cout << "Resolving module path for specifier: " << specifier << std::endl;
 	const std::string HOME = [&](){
 		#ifdef _WIN32
+			return std::string(getenv("USERPROFILE"));
 		#else
 			return std::string(getenv("HOME"));
 		#endif

@@ -69,11 +69,11 @@ function FsCopy(src,dst) {
 		...GetAllFilesOfExtension('src','.cpp'),
 		...GetAllFilesOfExtension('src','.cxx'),
 		...GetAllFilesOfExtension('src','.c++'),
-	];
+	].map((file) => file.replace(/\\/g,'/'));
 
 	const sources_c = [
 		...GetAllFilesOfExtension('src','.c'),
-	];
+	].map((file) => file.replace(/\\/g,'/'));
 
 	const objects = [
 	];
@@ -86,12 +86,14 @@ function FsCopy(src,dst) {
 	EnsureDirectoryExists(`${HOME}/.dmcre/bin`);
 
 	sources_cpp.forEach((source) => {
-		console.log(`[C++] ${source}`);
-		const objname = crypto.hash('sha256',source);
+		const objname = crypto.hash('sha256',source)+'.obj';
+		console.log(`[C++] ${source} ${objname}`);
 		const compiler = spawnSync(
 			'clang++',[
 				(source == 'src/data.cpp' ? `-Wno-null-conversion` : ``),
 				'-c',
+				'-Wno-vla-cxx-extension',
+				'-Wno-deprecated-declarations',
 				'-g',
 				'-std=c++20',
 				'-I','inc',
@@ -107,8 +109,8 @@ function FsCopy(src,dst) {
 	});
 
 	sources_c.forEach((source) => {
-		console.log(`[C] ${source}`);
-		const objname = crypto.hash('sha256',source);
+		const objname = crypto.hash('sha256',source)+'.obj';
+		console.log(`[C] ${source} ${objname}`);
 		const compiler = spawnSync(
 			'clang',[
 				(source.startsWith('src/crypto/b-con/') ? `-Wno-pointer-sign` : ``),
@@ -132,9 +134,10 @@ function FsCopy(src,dst) {
 	const linker = spawnSync(
 		'clang++',[
 			...objects,
+			`-g`,
 			`-o`,`bin/dmcre`,
-			`-rdynamic`,
-			`-ldl`,
+			process.platform != 'win32' ? `-rdynamic` : '',
+			process.platform != 'win32' ? `-ldl` : '',
 		],
 		{stdio:'inherit'}
 	);
@@ -143,7 +146,7 @@ function FsCopy(src,dst) {
 	}
 
 	FsCopy(`inc/dmcre`,`${HOME}/.dmcre/global`);
-	FsCopy(`bin/dmcre`,`${HOME}/.dmcre/bin/dmcre`);
+	FsCopy(`bin/dmcre`,`${HOME}/.dmcre/bin/dmcre.exe`);
 
 	fs.writeFileSync(`BuildScript.temp`,BuildScript);
 })()
