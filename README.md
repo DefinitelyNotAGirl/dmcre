@@ -4,6 +4,8 @@
 - provides module functionality
 - mainly intended as a dev tool and a replacement for nodejs which just kicks and screams every chance it gets in that role
 
+### ***windows support is broken at this time on account of clang not wanting to properly generate code under windows for whatever reason and me having ran out of fucks to give and therefore not spending days on end fixing it***
+
 # installation
 ## MacOS
 - install xcode if you dont already have it installed

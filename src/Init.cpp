@@ -4,7 +4,6 @@
 #include "private.hpp"
 #include <dmcre/time.hpp>
 #include <dmcre/util.hpp>
-#include <windows.h>
 using namespace dmcre;
 
 path RuntimeDir("");
