@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"preLaunchTask": "build",
+			"type": "lldb",
+			"request": "launch",
+			"name": "Launch dist/dmcre",
+			"program": "${workspaceFolder}/dist/dmcre",
+			"args": ["tests/1.cpp"],
+			"cwd": "${workspaceFolder}",
+		}
+	],
+	"compounds": []
+}

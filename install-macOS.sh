@@ -1,0 +1,37 @@
+mkdir -p "build/objects"
+mkdir -p "bin"
+mkdir -p "$HOME/.dmcre"
+mkdir -p "$HOME/.dmcre/global"
+mkdir -p "$HOME/.dmcre/bin"
+clang++  -c -g -std=c++20 -I inc src/Cache.cpp -o build/objects/c8d6667e13434c86eaef0d2d4ce3610b3aafda388c2c56adf0afcf9b88c382c5
+clang++  -c -g -std=c++20 -I inc src/Crash.cpp -o build/objects/d6fc74c13ae779b83d9f5281444f9912a390005346623aef6eecded8a6181866
+clang++  -c -g -std=c++20 -I inc src/Init.cpp -o build/objects/8710b106d0a1df9df2851893f7a953aeb7a104d255bc8822d858b56c4d971905
+clang++  -c -g -std=c++20 -I inc src/LoadModule.cpp -o build/objects/c2eca0f3564f386e75f6cf675996d191312064f1514a5f977401bdc2815fc3dc
+clang++  -c -g -std=c++20 -I inc src/ResolveModule.cpp -o build/objects/e8ed5bb66215e973810a7f52e0093de731b52c1a69ffd4e8a37088057775f7c0
+clang++  -c -g -std=c++20 -I inc src/Toolchain.cpp -o build/objects/54220a408021acee6e23d13c85abadd14e7be95144aaa1707de1977c2c02d0af
+clang++  -c -g -std=c++20 -I inc src/crypto.cpp -o build/objects/3700f1a6da19be70db791c8b323a328192eda62ce64f3f5b70c868e1bdbf63ba
+clang++ -Wno-null-conversion -c -g -std=c++20 -I inc src/data.cpp -o build/objects/009fc4b513f11ceea77f7c4c20a542fa5e707cf8936ace1fd8fdff68ef328915
+clang++  -c -g -std=c++20 -I inc src/main.cpp -o build/objects/34d21af3c614ea3cee120df276c9c4ae95053830d7f1d3deaf009a4625409ad2
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/aes.c -o build/objects/fabe5f84a0cec053c80ff562f9828fa297d3e5dec259ecf27bf77b9705dfe769
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/aes_test.c -o build/objects/89cf1b219fb20743a25a99f02ab3e705525290a820ca51ee2da29ad9311ba3b7
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/arcfour.c -o build/objects/86074047c0a3abdd672175c163a9b33d5150fb83e2613b5f2dd41ec58f34bdc9
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/arcfour_test.c -o build/objects/59b80f860d0805eb09a51c9b4c4f6006712ca07739072aa21e35ff6d66fb1aaa
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/base64.c -o build/objects/1a69a0f2eeaf601628ba8574f06f12b6d05bb6046c28ba8d220da917b3af7ba9
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/base64_test.c -o build/objects/b297574cfb40bd17136479aa5e40be2c9ed62ee6de5a91429e30d1cd6ab500d1
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/blowfish.c -o build/objects/a8d5693ee47646722cc8b7ebb4112d805f55ce3f79a699c6845a9419fbd2bab0
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/blowfish_test.c -o build/objects/7a9b71af6e1f78efd036f0ab54947e20bc6acef06d4e700ffedbae4269a42022
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/des.c -o build/objects/25dfb86e06c3efc10639a736df2d2144824fac8573006608faf056b48ff41d04
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/des_test.c -o build/objects/33ba104261cfbf07fb50e651c753ee8d7bc54375f1b06806aae4f0c2d9c7572c
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/md2.c -o build/objects/9c19e42e6ce787174114772a7c7e2b391e4b1d3beab6de057b3a4d37cd7d34be
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/md2_test.c -o build/objects/3a26b46ab4608e9c609fc79efdbecad4638bc1f4dcd19d59329dd08ed58b8a9f
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/md5.c -o build/objects/362a76b38e952501e102306ff13bcdcff4b1f9972e3b9dfc7112708bf3d4a401
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/md5_test.c -o build/objects/0a368d4c7f5e99f674390e680e73e913bc1ae5f4958e21dc819721a6c88116bb
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/rot-13.c -o build/objects/167b21b8d7bf790e129873c4a7ca9e50a4852768370ab64879a43751e02e3634
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/rot-13_test.c -o build/objects/3782eab958951de8a24c0e07bdfc5695b193b3f5acd33c07ed1b69415ddb4a0c
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/sha1.c -o build/objects/910faf3cf66194cf97b588ad4829938a1803019849785936c184c7f161bdcac6
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/sha1_test.c -o build/objects/3af4f3c005f0178cbb88b9eb92ab8d3fb88bca01669e4f61c1631196cddaff24
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/sha256.c -o build/objects/808d34d5c43b7474f316d53597de56085e1b3294781091b488884945e50ef823
+clang -Wno-pointer-sign -Wno-return-type -Wno-header-guard -c -g -std=c17 -I inc src/crypto/b-con/sha256_test.c -o build/objects/54d7bb100378f7c5899e3f604f2a03026f1fcf53bfdb3acdbd13392687e5be78
+clang++ build/objects/c8d6667e13434c86eaef0d2d4ce3610b3aafda388c2c56adf0afcf9b88c382c5 build/objects/d6fc74c13ae779b83d9f5281444f9912a390005346623aef6eecded8a6181866 build/objects/8710b106d0a1df9df2851893f7a953aeb7a104d255bc8822d858b56c4d971905 build/objects/c2eca0f3564f386e75f6cf675996d191312064f1514a5f977401bdc2815fc3dc build/objects/e8ed5bb66215e973810a7f52e0093de731b52c1a69ffd4e8a37088057775f7c0 build/objects/54220a408021acee6e23d13c85abadd14e7be95144aaa1707de1977c2c02d0af build/objects/3700f1a6da19be70db791c8b323a328192eda62ce64f3f5b70c868e1bdbf63ba build/objects/009fc4b513f11ceea77f7c4c20a542fa5e707cf8936ace1fd8fdff68ef328915 build/objects/34d21af3c614ea3cee120df276c9c4ae95053830d7f1d3deaf009a4625409ad2 build/objects/fabe5f84a0cec053c80ff562f9828fa297d3e5dec259ecf27bf77b9705dfe769 build/objects/89cf1b219fb20743a25a99f02ab3e705525290a820ca51ee2da29ad9311ba3b7 build/objects/86074047c0a3abdd672175c163a9b33d5150fb83e2613b5f2dd41ec58f34bdc9 build/objects/59b80f860d0805eb09a51c9b4c4f6006712ca07739072aa21e35ff6d66fb1aaa build/objects/1a69a0f2eeaf601628ba8574f06f12b6d05bb6046c28ba8d220da917b3af7ba9 build/objects/b297574cfb40bd17136479aa5e40be2c9ed62ee6de5a91429e30d1cd6ab500d1 build/objects/a8d5693ee47646722cc8b7ebb4112d805f55ce3f79a699c6845a9419fbd2bab0 build/objects/7a9b71af6e1f78efd036f0ab54947e20bc6acef06d4e700ffedbae4269a42022 build/objects/25dfb86e06c3efc10639a736df2d2144824fac8573006608faf056b48ff41d04 build/objects/33ba104261cfbf07fb50e651c753ee8d7bc54375f1b06806aae4f0c2d9c7572c build/objects/9c19e42e6ce787174114772a7c7e2b391e4b1d3beab6de057b3a4d37cd7d34be build/objects/3a26b46ab4608e9c609fc79efdbecad4638bc1f4dcd19d59329dd08ed58b8a9f build/objects/362a76b38e952501e102306ff13bcdcff4b1f9972e3b9dfc7112708bf3d4a401 build/objects/0a368d4c7f5e99f674390e680e73e913bc1ae5f4958e21dc819721a6c88116bb build/objects/167b21b8d7bf790e129873c4a7ca9e50a4852768370ab64879a43751e02e3634 build/objects/3782eab958951de8a24c0e07bdfc5695b193b3f5acd33c07ed1b69415ddb4a0c build/objects/910faf3cf66194cf97b588ad4829938a1803019849785936c184c7f161bdcac6 build/objects/3af4f3c005f0178cbb88b9eb92ab8d3fb88bca01669e4f61c1631196cddaff24 build/objects/808d34d5c43b7474f316d53597de56085e1b3294781091b488884945e50ef823 build/objects/54d7bb100378f7c5899e3f604f2a03026f1fcf53bfdb3acdbd13392687e5be78 -o bin/dmcre -rdynamic -ldl
+cp -r "inc/dmcre" "$HOME/.dmcre/global"
+cp -r "bin/dmcre" "$HOME/.dmcre/bin/dmcre"

@@ -1,0 +1,143 @@
+#include <stdexcept>
+#include <string>
+
+#include <stdio.h>
+#include <time.h>
+
+#include <iostream>
+
+namespace dmcre::time {
+	class Timezone {
+		friend class Date;
+		uint64_t offset_seconds = 0;
+		Timezone(const uint64_t offset_seconds): offset_seconds(offset_seconds){}
+
+	public:
+		Timezone operator+(const uint64_t offset_seconds) const {
+			return Timezone(this->offset_seconds + offset_seconds);
+		}
+
+		uint64_t getOffset() const {
+			return this->offset_seconds;
+		}
+
+		static const Timezone UTC() {
+			return Timezone(0);
+		}
+	};
+
+	namespace Timezones {
+		//UTC
+		static const Timezone UTC = Timezone::UTC() + (0);
+		//Europe
+		static const Timezone CET = UTC + (3600);
+			static const Timezone CEST = CET + (3600);
+	};
+
+	class Date {
+	private:
+		uint64_t UNIX; // UNIX timestamp
+	
+	public:
+		Date(uint64_t UNIX): UNIX(UNIX){}
+
+	public:
+		uint64_t timestamp() {
+			return this->UNIX;
+		}
+
+		std::string ToISO(const Timezone& timezone = Timezones::UTC) {
+			uint64_t stamp = UNIX+(timezone.getOffset());
+			/*
+				Each leap year has 366 days instead of 365. This extra leap day occurs in each year that is a multiple of 4, except for years evenly divisible by 100 but not by 400.
+			*/
+			uint64_t year = 1970;
+			uint64_t month = 1;
+			uint64_t day;
+			{
+				uint64_t days = (stamp / 86400) + 1;
+				bool isLeapYear = false;
+				while(days >= 365) {
+					year++;
+					if(
+						year % 4 == 0
+						&&
+						(
+							year % 100 != 0
+							||
+							year % 400 == 0
+						)
+					) {
+						// leap year
+						days -= 366;
+						isLeapYear = true;
+						//std::cout << "\x1b[31m" << year << "\x1b[0m" << std::endl;
+					} else {
+						// not leap year
+						days -= 365;
+						isLeapYear = false;
+						//std::cout << "\x1b[32m" << year << "\x1b[0m" << std::endl;
+					}
+				}
+
+				if(isLeapYear && days == 60) {
+					month = 2;
+					day = 29;
+					goto __DayComputed;
+				}
+				if(isLeapYear && days > 60) {
+					days--;
+				}
+				if(days <= 31) {
+					day = days;
+					goto __DayComputed;
+				}
+				days-=31;
+				month++;
+				if(days <= 28) {
+					day = days;
+					goto __DayComputed;
+				}
+				days-=28;
+				month++;
+				while(month < 12) {
+					if(days <= 31) {
+						day = days;
+						goto __DayComputed;
+					}
+					days-=31;
+					month++;
+					if(days <= 30) {
+						day = days;
+						goto __DayComputed;
+					}
+					days-=30;
+					month++;
+				}
+				__DayComputed:;
+			}
+			uint64_t hour = 0;
+			uint64_t minute = 0;
+			uint64_t second = 0;
+			{
+				hour 	= (stamp % 86400) / 3600;
+				minute 	= (stamp % 3600) / 60;
+				second 	= (stamp % 60) / 1;
+			}
+
+			return (
+				std::to_string(day)+"."+std::to_string(month)+"."+std::to_string(year)
+				+" "+
+				std::to_string(hour)+":"+std::to_string(minute)+":"+std::to_string(second)
+			);
+		}
+	};
+
+	static Date now() {
+		time_t timestamp = ::time(NULL);
+    	if (timestamp == ((time_t)-1)) {
+			throw std::runtime_error("could not fetch unix timestamp");
+    	}
+		return Date(timestamp);
+	}
+}
