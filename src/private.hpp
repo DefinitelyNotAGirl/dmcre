@@ -16,6 +16,7 @@
 
 void CrashHandler(int sig);
 std::string ResolveModulePath(const std::string& specifier);
+
 dmcre::Module& LoadModule(const std::string& path,void* in);
 
 /**

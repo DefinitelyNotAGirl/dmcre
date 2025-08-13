@@ -21,9 +21,9 @@ using namespace dmcre::crypto;
 using namespace dmcre;
 
 Module& LoadModule(const std::string& specifier,void* in) {
-	std::cout << "Loading module: " << specifier << std::endl;
+	//std::cout << "Loading module: " << specifier << std::endl;
 	std::string path = ResolveModulePath(specifier);
-	std::cout << specifier << " => " << path << std::endl;
+	//std::cout << specifier << " => " << path << std::endl;
 	std::string FileDigest = "";
 	{
 		std::string content;
@@ -37,14 +37,15 @@ Module& LoadModule(const std::string& specifier,void* in) {
 	}
 	#ifdef _WIN32
 		std::string HOME = getenv("USERPROFILE");
+		std::string compile_cmd = "clang++ -Ddmcre_export=\"extern \\\"C\\\" __declspec(dllexport)\" -g -shared -std=c++20 -I"+HOME+"/.dmcre/global -x c++ "+path+" -o "+(RuntimeDir / FileDigest).str+".dll > NUL";
 	#else
 		std::string HOME = getenv("HOME");
+		std::string compile_cmd = "c++ -Ddmcre_export=\"extern \\\"C\\\"\" -g -shared -std=c++20 -I"+HOME+"/.dmcre/global  -undefined dynamic_lookup -x c++ "+path+" -o "+(RuntimeDir / FileDigest).str;
 	#endif
-	std::string compile_cmd = "c++ -g -shared -std=c++20 -I"+HOME+"/.dmcre/global  -undefined dynamic_lookup -x c++ "+path+" -o "+(RuntimeDir / FileDigest).str;
 	system(compile_cmd.c_str());
 	
 	#ifdef _WIN32
-		HMODULE dll = LoadLibraryA((RuntimeDir / FileDigest).str.c_str());
+		HMODULE dll = LoadLibraryA(((RuntimeDir / FileDigest).str+".dll").c_str());
 		if(dll == nullptr) {
 			throw std::runtime_error("LoadLibraryA failed!");
 		}
@@ -54,13 +55,11 @@ Module& LoadModule(const std::string& specifier,void* in) {
 			throw std::runtime_error("dlopen failed!");
 		}
 	#endif
-	std::cout << "(1) loading module from " << path << std::endl;
 	LoadedFiles.push_back(
 		LoadedFile(
 			FileDigest,
 			dll,
 			([dll,in,path]() -> Module& {
-				std::cout << "(2) loading module from " << path << std::endl;
 				#ifdef _WIN32
 					FARPROC sym = GetProcAddress(dll,"module");
 					if(!sym) {
@@ -81,5 +80,6 @@ Module& LoadModule(const std::string& specifier,void* in) {
 }
 
 void CleanRuntimeDirectory() {
+	std::cout << "Cleaning runtime directory: " << RuntimeDir.str << std::endl;
 	std::filesystem::remove_all(RuntimeDir.str);
 }

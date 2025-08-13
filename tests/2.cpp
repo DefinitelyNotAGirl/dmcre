@@ -5,7 +5,11 @@ using namespace dmcre;
 
 #include <iostream>
 
-extern "C" Module* module(dmcre::Core& core,void* in) {
+#ifndef dmcre_export
+	#define dmcre_export
+#endif
+
+dmcre_export Module* module(dmcre::Core& core,void* in) {
 	static Module2 _m;
 	_m.use = []{
 		std::cout << "module function used!" << std::endl;

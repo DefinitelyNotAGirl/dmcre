@@ -1,5 +1,12 @@
 #pragma once
 #include <functional>
+#include <string>
+
+#ifdef _WIN32
+	#define FTAN(name)
+#else
+	#define FTAN(name) name
+#endif
 
 namespace dmcre {
 	class Module {
@@ -9,7 +16,7 @@ namespace dmcre {
 
 	class Core {
 	public:
-		std::function<Module&(std::string specifier,void* in)> LoadModule;
+		std::function<Module&(std::string FTAN(specifier),void* FTAN(in))> LoadModule;
 	};
 
 	class InitialModuleIn {

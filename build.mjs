@@ -87,7 +87,7 @@ function FsCopy(src,dst) {
 
 	sources_cpp.forEach((source) => {
 		const objname = crypto.hash('sha256',source)+'.obj';
-		console.log(`[C++] ${source} ${objname}`);
+		console.log(`[C++] ${source}`);
 		const compiler = spawnSync(
 			'clang++',[
 				(source == 'src/data.cpp' ? `-Wno-null-conversion` : ``),
@@ -110,7 +110,7 @@ function FsCopy(src,dst) {
 
 	sources_c.forEach((source) => {
 		const objname = crypto.hash('sha256',source)+'.obj';
-		console.log(`[C] ${source} ${objname}`);
+		console.log(`[C] ${source}`);
 		const compiler = spawnSync(
 			'clang',[
 				(source.startsWith('src/crypto/b-con/') ? `-Wno-pointer-sign` : ``),
@@ -135,7 +135,7 @@ function FsCopy(src,dst) {
 		'clang++',[
 			...objects,
 			`-g`,
-			`-o`,`bin/dmcre`,
+			`-o`,`bin/dmcre${process.platform == 'win32' ? '.exe' : ''}`,
 			process.platform != 'win32' ? `-rdynamic` : '',
 			process.platform != 'win32' ? `-ldl` : '',
 		],
@@ -146,7 +146,7 @@ function FsCopy(src,dst) {
 	}
 
 	FsCopy(`inc/dmcre`,`${HOME}/.dmcre/global`);
-	FsCopy(`bin/dmcre`,`${HOME}/.dmcre/bin/dmcre.exe`);
+	FsCopy(`bin/dmcre${process.platform == 'win32' ? '.exe' : ''}`,`${HOME}/.dmcre/bin/dmcre.exe`);
 
 	fs.writeFileSync(`BuildScript.temp`,BuildScript);
 })()
