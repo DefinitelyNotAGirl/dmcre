@@ -5,6 +5,8 @@
 build/
 bin/
 bin/dmcre
+WindowsInstallerPackage/Installer.ilk
+WindowsInstallerPackage/Installer.pdb
 
 # temporary files
 BuildScript.temp
