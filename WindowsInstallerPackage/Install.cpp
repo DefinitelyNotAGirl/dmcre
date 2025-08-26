@@ -87,12 +87,7 @@ bool CheckDependencies() {
 		std::cout << "clang++ not found in PATH. Please install LLVM and ensure clang++ is accessible from the command line." << std::endl;
 		std::cout << "Installation aborted." << std::endl;
 		SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
-		std::cout << "Press Enter to rerun this check or q + Enter to abort the installation." << std::endl;
-		auto res = std::cin.get();
-		if(res == 'q') {
-			return false;
-		}
-		std::cin.get();
+		return false;
 	}
 	std::cout << "Clang";
 	SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | FOREGROUND_GREEN);
