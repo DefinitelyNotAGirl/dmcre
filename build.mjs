@@ -55,9 +55,9 @@ function EnsureDirectoryExists(dir) {
 	}
 }
 
-function FsCopy(src,dst) {
+function FsCopy(src,dst,isFile = false) {
 	if(process.platform == 'win32') {
-		BuildScript += `robocopy "${src}" "${dst}" /E\n`;
+		BuildScript += `${isFile ? 'copy' : 'robocopy'} "${src}" "${dst}" ${isFile ? '' : '/E'}\n`;
 	} else {
 		BuildScript += `cp -r "${src}" "${dst}"\n`;
 	}
@@ -146,7 +146,7 @@ function FsCopy(src,dst) {
 	}
 
 	FsCopy(`inc/dmcre`,`${HOME}/.dmcre/global`);
-	FsCopy(`bin/dmcre${process.platform == 'win32' ? '.exe' : ''}`,`${HOME}/.dmcre/bin/dmcre.exe`);
+	FsCopy(`bin/dmcre${process.platform == 'win32' ? '.exe' : ''}`,`${HOME}/.dmcre/bin/dmcre.exe`,true);
 
 	fs.writeFileSync(`BuildScript.temp`,BuildScript);
 })()
