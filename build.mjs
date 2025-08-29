@@ -57,6 +57,7 @@ function EnsureDirectoryExists(dir) {
 
 function FsCopy(src,dst,isFile = false) {
 	if(process.platform == 'win32') {
+		src = src.replace(/\//g,'\\');
 		BuildScript += `${isFile ? 'copy' : 'robocopy'} "${src}" "${dst}" ${isFile ? '' : '/E'}\n`;
 	} else {
 		BuildScript += `cp -r "${src}" "${dst}"\n`;
