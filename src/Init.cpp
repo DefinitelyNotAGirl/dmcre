@@ -18,11 +18,10 @@ namespace init {
 			const std::string HOME = std::string(getenv("HOME"));
 		#endif
 		RuntimeDir = HOME / ".dmcre" / "rt" / (ToHexString_BE(&pid) + "-" + std::to_string(time::now().timestamp()));
-		std::cout << "runtime dir: " << RuntimeDir.str << std::endl;
+		//std::cout << "runtime dir: " << RuntimeDir.str << std::endl;
 		if(!std::filesystem::exists((HOME / ".dmcre" / "rt").str)) {
 			std::filesystem::create_directory((HOME / ".dmcre" / "rt").str);
 		}
 		std::filesystem::create_directory(RuntimeDir.str);
-		std::cout << "debug" << std::endl;
 	}
 }

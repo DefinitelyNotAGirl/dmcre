@@ -4,7 +4,9 @@
 
 #ifdef _WIN32
 	#define FTAN(name)
+	#define dmcre_export extern "C" __declspec(dllexport)
 #else
+	#define dmcre_export extern "C"
 	#define FTAN(name) name
 #endif
 

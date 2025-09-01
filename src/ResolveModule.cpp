@@ -3,7 +3,7 @@
 #include <iostream>
 
 std::string ResolveModulePath(const std::string& specifier) {
-	std::cout << "Resolving module path for specifier: " << specifier << std::endl;
+	//std::cout << "Resolving module path for specifier: " << specifier << std::endl;
 	const std::string HOME = [&](){
 		#ifdef _WIN32
 			return std::string(getenv("USERPROFILE"));

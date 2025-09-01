@@ -31,7 +31,12 @@ int main(int argc, char** argv) {
 	//.
 	{
 		core.LoadModule = [](std::string specifier,void* in) -> Module& {
-			return LoadModule(specifier, in);
+			try {
+				return LoadModule(specifier, in);
+			} catch(const std::exception& e) {
+				std::cerr << "Error loading module '" << specifier << "': " << e.what() << std::endl;
+				abort();
+			}
 		};
 	}
 
@@ -40,7 +45,12 @@ int main(int argc, char** argv) {
 	init_in.argv = argv+1;
 
 	const std::string InitialSpecifier = argv[1];
-	LoadModule(InitialSpecifier,&init_in);
+	try {
+		LoadModule(InitialSpecifier,&init_in);
+	} catch(const std::exception& e) {
+		std::cerr << "Error loading script '" << InitialSpecifier << "': " << e.what() << std::endl;
+		abort();
+	}
 
 	//unload all modules
 	for(auto& file : LoadedFiles) {
