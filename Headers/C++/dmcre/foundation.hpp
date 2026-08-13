@@ -1,0 +1,273 @@
+#ifndef DMCRE_FOUNDATION_0
+#define DMCRE_FOUNDATION_0
+
+#include <stdexcept>
+#ifdef __APPLE__
+	#include <cxxabi.h>
+	#define FOUNDATION_CXXABI
+#endif
+
+#include <functional>
+#include <typeinfo>
+#include <list>
+#include <iostream>
+#include <source_location>
+#include <vector>
+#include <iostream>
+
+#define __public public:
+#define __protected protected:
+#define __private private:
+
+#define DMCRE_HELPER_CAT2(a,b) a##b
+#define DMCRE_HELPER_CAT(a,b) DMCRE_HELPER_CAT2(a,b)
+
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_0(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_1(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_2(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_3(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_4(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_5(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_6(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_7(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_8(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_9(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0_FOR_9(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_0(____code____) DMCRE_HELPER_CAT(DMCRE_IF_INCLUDE_LEVEL_0_FOR_,__INCLUDE_LEVEL__)(____code____)
+
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_0(____code____)
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_1(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_2(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_3(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_4(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_5(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_6(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_7(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_8(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_9(____code____) ____code____
+#define DMCRE_IF_INCLUDE_LEVEL_NOT_0(____code____) DMCRE_HELPER_CAT(DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_,__INCLUDE_LEVEL__)(____code____)
+
+#define anonymous static auto DMCRE_HELPER_CAT(____anonymous_,__COUNTER__) =
+
+#define DMCRE_GLOBAL_FUNCTION(signature,body) \
+	signature \
+	DMCRE_IF_INCLUDE_LEVEL_0(body) \
+	DMCRE_IF_INCLUDE_LEVEL_NOT_0(;)
+
+class Abstract {
+public:
+	virtual const std::type_info& getType() const = 0;
+	
+	template<typename T>
+	const bool implements() const {
+		return dynamic_cast<const T*>(this) != nullptr;
+	}
+	
+	template<typename T>
+	T* as() {
+		return dynamic_cast<T*>(this);
+	}
+};
+
+#include "type.hpp"
+
+// ██╗███╗   ██╗████████╗███████╗ ██████╗ ███████╗██████╗     ████████╗██╗   ██╗██████╗ ███████╗███████╗
+// ██║████╗  ██║╚══██╔══╝██╔════╝██╔════╝ ██╔════╝██╔══██╗    ╚══██╔══╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔════╝
+// ██║██╔██╗ ██║   ██║   █████╗  ██║  ███╗█████╗  ██████╔╝       ██║    ╚████╔╝ ██████╔╝█████╗  ███████╗
+// ██║██║╚██╗██║   ██║   ██╔══╝  ██║   ██║██╔══╝  ██╔══██╗       ██║     ╚██╔╝  ██╔═══╝ ██╔══╝  ╚════██║
+// ██║██║ ╚████║   ██║   ███████╗╚██████╔╝███████╗██║  ██║       ██║      ██║   ██║     ███████╗███████║
+// ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝       ╚═╝      ╚═╝   ╚═╝     ╚══════╝╚══════╝
+
+#include "integer.hpp"
+
+// ██╗   ██╗███╗   ██╗██╗████████╗███████╗
+// ██║   ██║████╗  ██║██║╚══██╔══╝██╔════╝
+// ██║   ██║██╔██╗ ██║██║   ██║   ███████╗
+// ██║   ██║██║╚██╗██║██║   ██║   ╚════██║
+// ╚██████╔╝██║ ╚████║██║   ██║   ███████║
+//  ╚═════╝ ╚═╝  ╚═══╝╚═╝   ╚═╝   ╚══════╝
+constexpr unsigned long long operator ""_KiB(unsigned long long n) {
+    return n * 1024;
+}
+
+constexpr unsigned long long operator ""_MiB(unsigned long long n) {
+    return n * 1024 * 1024;
+}
+
+constexpr unsigned long long operator ""_GiB(unsigned long long n) {
+    return n * 1024 * 1024 * 1024;
+}
+
+// ██████╗ ██╗████████╗    ███████╗██╗███████╗██╗     ██████╗ 
+// ██╔══██╗██║╚══██╔══╝    ██╔════╝██║██╔════╝██║     ██╔══██╗
+// ██████╔╝██║   ██║       █████╗  ██║█████╗  ██║     ██║  ██║
+// ██╔══██╗██║   ██║       ██╔══╝  ██║██╔══╝  ██║     ██║  ██║
+// ██████╔╝██║   ██║       ██║     ██║███████╗███████╗██████╔╝
+// ╚═════╝ ╚═╝   ╚═╝       ╚═╝     ╚═╝╚══════╝╚══════╝╚═════╝ 
+template<typename T,int bit_start,int bit_end = bit_start>
+class BitField {
+    T& value;
+public:
+    inline constexpr BitField(T& v) noexcept : value(v) {}
+
+    inline static constexpr T mask = ((T(1) << (bit_end - bit_start + 1)) - 1) << bit_start;
+
+    inline constexpr T get() const noexcept {
+        return (value & mask) >> bit_start;
+    }
+
+    inline constexpr void set(T v) noexcept {
+        value = (value & mask.InvertBits()) | ((v << bit_start) & mask);
+    }
+};
+
+template<class T>
+constexpr T&& move(T& t) noexcept {
+    return static_cast<T&&>(t);
+}
+
+#include <stack>
+template<typename t_T>
+class Stackable {
+public:
+	using T = t_T;
+
+private:
+	std::stack<T> m_stack;
+
+public:
+	Stackable(T p_init) {
+		m_stack.push(p_init);
+	}
+
+	void push(T p_obj) {
+		return m_stack.push(p_obj);
+	}
+
+	void pop() {
+		return m_stack.pop();
+	}
+
+	T& get() {
+		return m_stack.top();
+	}
+
+	const T& get() const {
+		return m_stack.top();
+	}
+};
+
+template<typename T>
+T max(T a,T b) {
+	return a > b ? a : b;
+}
+
+template<typename T>
+T min(T a,T b) {
+	return a < b ? a : b;
+}
+
+template<typename T>
+class indexed_list : public std::list<T> {
+public:
+    T& operator[](std::size_t index) {
+        auto it = this->begin();
+        std::advance(it, index);
+        return *it;
+    }
+
+    const T& operator[](std::size_t index) const {
+        auto it = this->begin();
+        std::advance(it, index);
+        return *it;
+    }
+};
+
+class UniqueObject {
+protected:
+    UniqueObject() = default;
+    ~UniqueObject() = default;
+
+    UniqueObject(const UniqueObject&) = delete;
+    UniqueObject& operator=(const UniqueObject&) = delete;
+
+	UniqueObject(UniqueObject&&) = delete;
+    UniqueObject& operator=(UniqueObject&&) = delete;
+
+public:
+	bool operator==(const UniqueObject& other) {
+		return this == &other;
+	}
+};
+
+class NonCopyable {
+public:
+    NonCopyable() = default;
+    ~NonCopyable() = default;
+
+    NonCopyable(const NonCopyable&) = delete;
+    NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
+class NonMoveable {
+public:
+	NonMoveable() = default;
+    ~NonMoveable() = default;
+
+	NonMoveable(NonMoveable&&) = delete;
+    NonMoveable& operator=(NonMoveable&&) = delete;
+};
+
+class UniquelyOwned {
+	UniquelyOwned(const UniquelyOwned&) = delete;
+    UniquelyOwned& operator=(const UniquelyOwned&) = delete;
+
+public:
+	UniquelyOwned(){}
+};
+
+#endif
+
+#ifndef DMCRE_FOUNDATION_TYPENAME
+#define DMCRE_FOUNDATION_TYPENAME
+#include <dmcre/String.hpp>
+dmcre::String Typename(const std::type_info& type);
+
+template<typename T>
+inline dmcre::String Typename() {
+	return Typename(typeid(T));
+};
+#endif
+
+#ifndef DMCRE_FOUNDATION_1
+#define DMCRE_FOUNDATION_1
+
+template<typename A,typename B>
+bool Implements(B& b) {
+	return dynamic_cast<A*>(&b) != nullptr;
+}
+
+namespace dmcre::error {
+	inline std::runtime_error InterfaceFunction(const std::source_location& caller = std::source_location::current()) {
+		return std::runtime_error(std::string("interface base function invoked: ")+caller.function_name());
+	}
+}
+
+namespace dmcre {
+	class Identifiable {
+	public:
+		virtual std::string Id() const = 0;
+		
+		virtual ~Identifiable() = 0;
+	};
+	
+	void CatchAll(std::function<void()> f);
+}
+
+class NoData {
+public:
+	// this exists for the sole purpose of allowing functions to be called at load-time without having to occupy memory with a useless integer
+	NoData(){}
+};
+
+#endif

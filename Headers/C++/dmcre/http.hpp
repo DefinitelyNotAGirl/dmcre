@@ -1,0 +1,522 @@
+#pragma once
+
+#include <stdexcept>
+#include <map>
+
+#include "foundation.hpp"
+#include <iostream>
+#include <vector>
+#include <dmcre/String.hpp>
+#include <dmcre/Buffer.hpp>
+#include <dmcre/IOStream.hpp>
+
+#include <dmcre/debug.hpp>
+
+namespace dmcre::http {
+	using std::unordered_map;
+	using std::vector;
+	
+	class Header {
+	public:
+		String key;
+		String value;
+	};
+	
+	class QueryParameter {
+	public:
+		String key;
+		String value;
+	};
+
+	class Request {
+	public:
+		String Path = String::decode("");
+		String Method = String::decode("");
+		String Protocol = String::decode("");
+		std::list<QueryParameter> QueryParameters;
+		std::list<Header> Headers;
+		DynamicBuffer Body;
+	};
+
+	static Request ReadRequest(IOStream& iostream) {
+		Request req;
+
+		//.
+		//.	read method
+		//.
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x20) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+			req.Method = String::decode(textBuf,String::Format::ASCII);
+		}
+
+		//.
+		//.	read path
+		//.
+		bool readParameters = false;
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x20 && b != 0x3F) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+			if(b == 0x3F) {
+				readParameters = true;
+			}
+			req.Path = String::decode(textBuf,String::Format::ASCII);
+		}
+		
+		//.
+		//.	read parameters
+		//.
+		if(readParameters) {
+			while(true) {
+				vector<Byte> keyBuf;
+				Byte b = iostream.read<Byte>();
+				while(b != 0x3D) {
+					keyBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				String key = String::decode(keyBuf,String::Format::ASCII);
+				
+				vector<Byte> valueBuf;
+				b = iostream.read<Byte>();
+				while(b != 0x26 && b != 0x20) {
+					valueBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				String value = String::decode(valueBuf,String::Format::ASCII);
+				
+				req.QueryParameters.push_back({key,value});
+				
+				if(b == 0x20) {
+					break;
+				}
+			}
+		}
+
+		//.
+		//.	read protocol
+		//.
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x0d) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+			req.Protocol = String::decode(textBuf,String::Format::ASCII);
+			iostream.read<Byte>(); // skip line feed byte
+		}
+
+		while(true) {
+			Byte b = iostream.read<Byte>();
+			if(b == 0x0d) {
+				iostream.read<Byte>(); // skip line feed byte
+				//. terminate headers
+				break;
+			}
+
+			//. read header name
+			String key = String::decode("");
+			{
+				vector<Byte> textBuf;
+				while(b != 0x3a) {
+					textBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				key = String::decode(textBuf,String::Format::ASCII);
+				key.toLowerInPlace();
+			}
+			b = iostream.read<Byte>();// skip whitespace byte
+			//. read header value
+			String value = String::decode("");
+			{
+				vector<Byte> textBuf;
+				b = iostream.read<Byte>();
+				while(b != 0x0d) {
+					textBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				value = String::decode(textBuf,String::Format::ASCII);
+				iostream.read<Byte>(); // skip line feed byte
+			}
+			req.Headers.push_back({key,value});
+		}
+
+		for(auto& header : req.Headers) {
+			if(header.key == String::decode("content-length")) {
+				UInt64 bodySize = header.value.toUnsignedInt();
+				req.Body.resize(bodySize);
+				iostream.read(req.Body);
+			}
+		}
+
+		return req;
+	}
+
+	static void SendRequest(IOStream& iostream,Request& request) {
+		DynamicBuffer MessageBuffer;
+
+		//.
+		//. set content-length header
+		//.
+		{
+			if(request.Body.size() > 0) {
+				request.Headers.push_back({String::decode("content-length"),String::fromInteger(request.Body.size())});
+			}
+		}
+
+		//.
+		//.	set method
+		//.
+		{
+			auto buffer = (request.Method+" ").encode(String::Format::ASCII);
+			MessageBuffer.append(buffer);
+		}
+
+		//.
+		//.	set path
+		//.
+		{
+			auto buffer = (request.Path).encode(String::Format::ASCII);
+			MessageBuffer.append(buffer);
+		}
+		
+		//
+		// query parameters
+		//
+		{
+			int i = 0;
+			for(auto& parameter : request.QueryParameters) {
+				auto buffer = (String(i == 0 ? "?" : "&")+parameter.key+"="+parameter.value).encode(String::Format::ASCII);
+				MessageBuffer.append(buffer);
+				i++;
+			}
+		}
+
+		//.
+		//.	set protocol
+		//.
+		{
+			auto buffer = String::decode(" HTTP/1.1").encode(String::Format::ASCII);
+			MessageBuffer.append(buffer);
+		}
+
+		//
+		//. CRLF => 0x0d,0x0a => 0x0a0d
+		//
+		{
+			UInt16 v = 0x0a0d;
+			MessageBuffer.SinkBuffer::append(v);
+		}
+
+		//.
+		//.	set headers
+		//.
+		{
+			for(auto& header : request.Headers) {
+				//. key
+				{
+					auto KeyBuffer = header.key.encode(String::Format::ASCII);
+					MessageBuffer.append(KeyBuffer);
+				}
+				//. ": " => 0x3a,0x20 => 0x203a
+				{
+					UInt16 v = 0x203a;
+					MessageBuffer.SinkBuffer::append(v);
+				}
+				//. value
+				{
+					auto ValueBuffer = header.value.encode(String::Format::ASCII);
+					MessageBuffer.append(ValueBuffer);
+				}
+				//. CRLF => 0x0d,0x0a => 0x0a0d
+				{
+					UInt16 v = 0x0a0d;
+					MessageBuffer.SinkBuffer::append(v);
+				}
+			}
+			//. terminate header section
+			//. CRLF => 0x0d,0x0a => 0x0a0d
+			{
+				UInt16 v = 0x0a0d;
+				MessageBuffer.SinkBuffer::append(v);
+			}
+		}
+
+		//.
+		//.	response body
+		//.
+		{
+			MessageBuffer.append(request.Body);
+		}
+
+		iostream.write(MessageBuffer);
+	}
+
+	class Response {
+	public:
+		std::list<Header> Headers;
+		DynamicBuffer Body;
+		UInt16 StatusCode = 0;
+		String StatusMessage = String("");
+	};
+
+	static void SendResponse(IOStream& iostream,Response& response) {
+		DynamicBuffer MessageBuffer;
+
+		//.
+		//. set content-length header
+		//.
+		{
+			response.Headers.push_back({String::decode("content-length"),String::fromInteger(response.Body.size())});
+		}
+
+		//.
+		//.	set protocol
+		//.
+		{
+			auto ProtocolSpecBuffer = String::decode("HTTP/1.1 ").encode(String::Format::ASCII);
+			MessageBuffer.append(ProtocolSpecBuffer);
+		}
+
+		//.
+		//.	set status code
+		//.
+		{
+			String strStatusCode = String::fromInteger(response.StatusCode);
+			strStatusCode.append(0x20);
+			auto statusCodeBuffer = strStatusCode.encode(String::Format::ASCII);
+			MessageBuffer.append(statusCodeBuffer);
+		}
+
+		//.
+		//.	set status message
+		//.
+		{
+			String statusMessage = response.StatusMessage;
+			statusMessage.append(0x20);
+			auto statusMessageBuffer = statusMessage.encode(String::Format::ASCII);
+			MessageBuffer.append(statusMessageBuffer);
+		}
+
+		//. CRLF => 0x0d,0x0a => 0x0a0d
+		{
+			UInt16 v = 0x0a0d;
+			MessageBuffer.SinkBuffer::append(v);
+		}
+
+		//.
+		//. set header fields
+		//.
+		{
+			for(auto& header : response.Headers) {
+				//. key
+				{
+					auto KeyBuffer = header.key.encode(String::Format::ASCII);
+					MessageBuffer.append(KeyBuffer);
+				}
+				//. ": " => 0x3a,0x20 => 0x203a
+				{
+					UInt16 v = 0x203a;
+					MessageBuffer.SinkBuffer::append(v);
+				}
+				//. value
+				{
+					auto ValueBuffer = header.value.encode(String::Format::ASCII);
+					MessageBuffer.append(ValueBuffer);
+				}
+				//. CRLF => 0x0d,0x0a => 0x0a0d
+				{
+					UInt16 v = 0x0a0d;
+					MessageBuffer.SinkBuffer::append(v);
+				}
+			}
+			//. terminate header section
+			//. CRLF => 0x0d,0x0a => 0x0a0d
+			{
+				UInt16 v = 0x0a0d;
+				MessageBuffer.SinkBuffer::append(v);
+			}
+		}
+
+		//.
+		//.	response body
+		//.
+		{
+			MessageBuffer.append(response.Body);
+		}
+
+		iostream.write(MessageBuffer);
+	}
+
+	static Response ReadResponse(IOStream& iostream) {
+		Response response;
+
+		//.
+		//.	read protocol
+		//.
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x20) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+		}
+
+		//.
+		//.	read status code
+		//.
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x20) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+			response.StatusCode = String::decode(textBuf,String::Format::ASCII).toUnsignedInt().truncate<16>();
+		}
+
+		//.
+		//.	read status message
+		//.
+		{
+			vector<Byte> textBuf;
+			Byte b = iostream.read<Byte>();
+			while(b != 0x0a) {
+				textBuf.push_back(b);
+				b = iostream.read<Byte>();
+			}
+			response.StatusMessage = String::decode(textBuf,String::Format::ASCII);
+		}
+
+		while(true) {
+			Byte b = iostream.read<Byte>();
+			if(b == 0x0d) {
+				iostream.read<Byte>(); // skip line feed byte
+				//. terminate headers
+				break;
+			}
+
+			//. read header name
+			String key = String::decode("");
+			{
+				vector<Byte> textBuf;
+				while(b != 0x3a) {
+					textBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				key = String::decode(textBuf,String::Format::ASCII);
+				key.toLowerInPlace();
+			}
+			b = iostream.read<Byte>();// skip whitespace byte
+			//. read header value
+			String value = String::decode("");
+			{
+				vector<Byte> textBuf;
+				b = iostream.read<Byte>();
+				while(b != 0x0d) {
+					textBuf.push_back(b);
+					b = iostream.read<Byte>();
+				}
+				value = String::decode(textBuf,String::Format::ASCII);
+				iostream.read<Byte>(); // skip line feed byte
+			}
+			response.Headers.push_back({key,value});
+		}
+
+		for(auto& header : response.Headers) {
+			if(header.key == String::decode("content-length")) {
+				UInt64 bodySize = header.value.toUnsignedInt();
+				response.Body.resize(bodySize);
+				iostream.read(response.Body);
+			}
+			else if(header.key == String::decode("transfer-encoding")) {
+				if(header.value == "chunked") {
+					// to whomever came up with this chunked transfer bullshit: please be ashamed of yourself, there is no reason for this shit, if the server does not know how big the data it wishes to send is then it better figure it the fuck out, there is no reason to weigh everything else on the internet down because your server somehow does not know the size of it's own fucking data, and no, this is not reasonable because it allows you to stream data that isnt done yet, doing so is a horrific abuse of HTTP, if you really do need to stream data as an HTTP response then use status code 101 and switch protocols to the underlying stream protocol that the HTTP transaction is being transported over. no fucking wonder nothing on the internet ever consistently fucking works these days, brain cells appear to be in short fucking stock.
+					Byte b;
+					while(true) {
+						UInt64 ChunkSize = 0;
+						b = iostream.read<Byte>();
+						while((b >= '0' and b <= '9') or (b >= 'a' and b <= 'f') or (b >= 'A' and b <= 'F')) {
+							if((b >= '0' and b <= '9')) {
+								ChunkSize = (ChunkSize << 4) | (b - '0');
+							}
+							else if((b >= 'a' and b <= 'f')) {
+								ChunkSize = (ChunkSize << 4) | ((b - 'a') + 10);
+							}
+							else if((b >= 'A' and b <= 'F')) {
+								ChunkSize = (ChunkSize << 4) | ((b - 'A') + 10);
+							}
+							b = iostream.read<Byte>();
+						}
+						// ignore chunk extensions
+						while(b != 0x0D) {
+							b = iostream.read<Byte>();
+						}
+						b = iostream.read<Byte>(); // this gets line feed
+						
+						//std::cout << "chunk: " << ChunkSize.HostEndian() << " bytes" << std::endl;
+
+						if(ChunkSize > 0) {
+							DynamicBuffer ChunkBuf;
+							ChunkBuf.resize(ChunkSize);
+							iostream.read(ChunkBuf);
+							response.Body.append(ChunkBuf);
+							iostream.read<Byte>(); // this gets carriage return
+							iostream.read<Byte>(); // this gets line feed
+						} else {
+							break;
+						}
+					}
+					while(true) {
+						b = iostream.read<Byte>();
+						if(b == 0x0d) {
+							iostream.read<Byte>(); // skip line feed byte
+												   // terminate trailers
+							break;
+						}
+						//std::cout << "trailer field" << std::endl;
+						
+						//. read header name
+						String key = String::decode("");
+						{
+							vector<Byte> textBuf;
+							while(b != 0x3a) {
+								textBuf.push_back(b);
+								b = iostream.read<Byte>();
+							}
+							key = String::decode(textBuf,String::Format::ASCII);
+							key.toLowerInPlace();
+						}
+						iostream.read<Byte>();// skip whitespace byte
+						// read header value
+						String value = String::decode("");
+						{
+							vector<Byte> textBuf;
+							b = iostream.read<Byte>();
+							while(b != 0x0d) {
+								textBuf.push_back(b);
+								b = iostream.read<Byte>();
+							}
+							b = iostream.read<Byte>(); // skip line feed
+							b = iostream.read<Byte>(); // get next byte
+							value = String::decode(textBuf,String::Format::ASCII);
+						}
+						//std::cout << (char*)key.encode(String::Format::CSTRING).raw() << ": " << (char*)value.encode(String::Format::CSTRING).raw() << std::endl;
+						response.Headers.push_back({key,value});
+					}
+				}
+			}
+		}
+
+		return response;
+	}
+}
