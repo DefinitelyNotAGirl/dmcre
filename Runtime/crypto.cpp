@@ -1,8 +1,10 @@
-#include <dmcre/crypto.hpp>
+#include <dmcre/crypto>
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if not defined(_WIN32)
 
 #include <cmath>
 
@@ -821,3 +823,5 @@ HashBuffer compute_sha1(const ParsedMessage& p) {
 
 //, namespace: crypto
 }
+
+#endif

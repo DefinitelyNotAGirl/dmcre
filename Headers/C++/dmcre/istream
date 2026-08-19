@@ -1,0 +1,44 @@
+//
+//  IStream.hpp
+//  dmcre
+//
+//  Created by Lilith on 06.04.26.
+//
+
+#pragma once
+
+#include <dmcre/foundation>
+#include <dmcre/buffer>
+#include <dmcre/time>
+
+namespace dmcre {
+	class IStream {
+	public:
+		class OutOfDataException {
+		};
+
+		virtual void read(WriteableBuffer& output) = 0;
+		
+		virtual void read(WriteableBuffer& output,SynchronousTimer& timeout) = 0;
+		
+		template<typename T>
+		requires(IsTriviallyCopyable<T>)
+		T read() {
+			T object;
+			auto buffer = WriteableObjectBuffer<T>(object);
+			read(buffer);
+			return object;
+		}
+
+		virtual void close() = 0;
+	};
+	
+	class RandomAccessIStream: public IStream {
+	public:
+		virtual void seek(UInt64 position) = 0;
+		virtual void seek_end() = 0;
+		
+		virtual UInt64 position() = 0;
+	};
+
+}

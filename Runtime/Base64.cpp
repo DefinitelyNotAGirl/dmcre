@@ -5,8 +5,8 @@
 //  Created by Lilith on 07.04.26.
 //
 
-#include <dmcre/Base64.hpp>
-#include <dmcre/Error.hpp>
+#include <dmcre/Base64>
+#include <dmcre/error>
 
 namespace dmcre {
 	static const char Base64Chars[64] = {

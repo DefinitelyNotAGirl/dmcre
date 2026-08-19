@@ -1,0 +1,45 @@
+//
+//  DynamicLibrary.hpp
+//  dmcre
+//
+//  Created by Lilith on 05.04.26.
+//
+
+#pragma once
+
+#include <string>
+#include <vector>
+#include <dmcre/foundation>
+
+namespace dmcre {
+	class DMCRE_PUBLIC_API DynamicLibrary: NonMoveable {
+	public:
+		enum class LoadFlag {
+			Global
+		};
+		
+		class Segment {
+		public:
+			std::string label;
+			void* start;
+			uint64_t size;
+		};
+		
+	private:
+		void* data = nullptr;
+		
+	public:
+		DynamicLibrary(std::string path,std::vector<LoadFlag> flags);
+		
+		DynamicLibrary(const DynamicLibrary& other);
+		
+		void unload();
+
+		void* getSymbol(std::string symbol);
+		
+		template<typename T>
+		T getSymbol(std::string symbol) {
+			return (T)this->getSymbol(symbol);
+		}
+	};
+}

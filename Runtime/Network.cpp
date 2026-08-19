@@ -5,6 +5,8 @@
 //  Created by Lilith on 07.04.26.
 //
 
+#if false
+
 namespace dmcre {
 }
 
@@ -316,3 +318,5 @@ namespace dmcre {
 	}
 #endif
 }
+
+#endif

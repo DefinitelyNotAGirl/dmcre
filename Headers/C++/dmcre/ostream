@@ -1,0 +1,38 @@
+//
+//  OStream.hpp
+//  dmcre
+//
+//  Created by Lilith on 06.04.26.
+//
+
+#pragma once
+
+#include <dmcre/foundation>
+#include <dmcre/buffer>
+#include <dmcre/time>
+
+namespace dmcre {
+	class OStream {
+	public:
+		virtual void write(ReadableBuffer& input) = 0;
+		
+		virtual void write(ReadableBuffer& input,SynchronousTimer& timeout) = 0;
+		
+		template<typename T>
+		requires(IsTriviallyCopyable<T>)
+		void write(const T& object) {
+			auto buffer = ReadableObjectBuffer<T>(object);
+			write(buffer);
+		}
+		
+		virtual void close() = 0;
+	};
+	
+	class RandomAccessOStream: public OStream {
+	public:
+		virtual void seek(UInt64 position) = 0;
+		virtual void seek_end() = 0;
+		
+		virtual UInt64 position() = 0;
+	};
+}

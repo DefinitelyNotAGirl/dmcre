@@ -1,0 +1,67 @@
+#pragma once
+
+#include <string>
+
+#include <map>
+#include <dmcre/DynamicLibrary>
+
+namespace dmcre {
+	extern DMCRE_PUBLIC_API std::string RuntimeDirectory;
+    DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API std::vector<std::string> IncludeDirectories;
+}
+
+namespace dmcre::load {
+    namespace cxx {
+		DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API std::vector<std::string> SystemIncludeDirectories;
+    }
+
+	extern DMCRE_PUBLIC_API std::map<std::string,std::string> cppMacros;
+	extern DMCRE_PUBLIC_API std::list<std::string> frameworks;
+	extern DMCRE_PUBLIC_API std::list<std::string> frameworkDirectories;
+	
+	extern DMCRE_PUBLIC_API std::list<std::string> swiftSources;
+	extern DMCRE_PUBLIC_API std::string swiftModuleName;
+
+	extern DMCRE_PUBLIC_API std::list<std::string> swiftModuleMaps;
+	
+	extern DMCRE_PUBLIC_API std::string compileCommandsPath;
+	extern DMCRE_PUBLIC_API std::string compileCommandsAbsoluteDir;
+	
+	extern DMCRE_PUBLIC_API bool useEngineLibrary;
+
+	enum class Domain {
+		LinkAndLoad, // LinkAndLoad function, Domain not applicable
+		System, // dmcre installation directory
+		WorkingDirectory, // cwd
+		User, // user home directory
+		Absolute // absolute path
+	};
+	
+	class PreCompiledObject {
+	public:
+		std::string source;
+		std::string object;
+	};
+
+	DMCRE_PUBLIC_API void ExecuteBuildSequence(
+		Domain domain,std::string path,bool doBuildDependencyTree,std::string out,
+		std::function<void(const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& args)> buildArguments,
+		std::function<void(const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& args)> buildFinalArguments,
+		std::function<void(const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& dependencies)> buildDependencies,
+		std::function<void(const std::string& source,const std::string& sourceDigest,const std::string& out)> postBuild
+	);
+	
+	DMCRE_PUBLIC_API PreCompiledObject PreCompileCpp(Domain domain,std::string path,std::string object);
+	DMCRE_PUBLIC_API PreCompiledObject PreCompileObjCpp(Domain domain,std::string path,std::string object);
+	DMCRE_PUBLIC_API PreCompiledObject PreCompileSwift(Domain domain,std::string path,std::string object);
+	DMCRE_PUBLIC_API DynamicLibrary LinkAndLoad(std::vector<PreCompiledObject>& objects,std::string ModuleId);
+	DMCRE_PUBLIC_API void Link(std::vector<PreCompiledObject>& objects,std::string outputPath);
+	DMCRE_PUBLIC_API void LinkMetal(std::vector<PreCompiledObject>& objects,std::string outputPath);
+	DMCRE_PUBLIC_API PreCompiledObject PreCompileMetal(Domain domain,std::string path,std::string object);
+	DMCRE_PUBLIC_API void LinkDylib(std::vector<PreCompiledObject>& objects,std::string dylibPath);
+
+	DMCRE_PUBLIC_API DynamicLibrary cpp(Domain domain,std::string path);
+	DMCRE_PUBLIC_API DynamicLibrary ObjCpp(Domain domain,std::string path);
+	DMCRE_PUBLIC_API DynamicLibrary Swift(Domain domain,std::string path);
+	DMCRE_PUBLIC_API DynamicLibrary dll(Domain domain,std::string path);
+}

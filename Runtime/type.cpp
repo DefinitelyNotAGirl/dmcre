@@ -5,7 +5,7 @@
 //  Created by Lilith on 04.04.26.
 //
 
-#include <dmcre/foundation.hpp>
+#include <dmcre/foundation>
 #if __has_include(<cxxabi.h>)
 
 #include <cxxabi.h>
@@ -20,7 +20,7 @@ dmcre::String Typename(const std::type_info& type) {
 
 #else
 
-std::string Typename(const std::type_info& type) {
+dmcre::String Typename(const std::type_info& type) {
 	return type.name();
 }
 

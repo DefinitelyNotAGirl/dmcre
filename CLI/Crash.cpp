@@ -1,4 +1,5 @@
 #include <csignal>
+#include <iostream>
 
 void CleanRuntimeDirectory();
 
@@ -8,6 +9,8 @@ void CrashHandler(int sig) {
 	
 	//delete the runtime directory
 	CleanRuntimeDirectory();
+
+	std::cout << "fatal error" << std::endl;
 
 	//re-raise signal
 	raise(sig);

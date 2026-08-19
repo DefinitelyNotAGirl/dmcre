@@ -5,6 +5,8 @@
 //  Created by Lilith on 06.08.26.
 //
 
+#if defined (__APPLE__)
+
 #include <dmcre/Network.hpp>
 
 #include "Impl.hpp"
@@ -180,3 +182,5 @@ namespace dmcre {
 		delete impl;
 	}
 }
+
+#endif

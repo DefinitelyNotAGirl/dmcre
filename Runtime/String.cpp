@@ -5,9 +5,9 @@
 //  Created by Lilith on 07.04.26.
 //
 
-#include <dmcre/String.hpp>
-#include <dmcre/Error.hpp>
-#include <dmcre/debug.hpp>
+#include <dmcre/string>
+#include <dmcre/error>
+#include <dmcre/debug>
 
 namespace dmcre {
 	String::String(const String& other): data(other.data) {

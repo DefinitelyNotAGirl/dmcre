@@ -1,0 +1,922 @@
+#pragma once
+
+#include <dmcre/error>
+#include <bit>
+#include <dmcre/istream>
+#include <dmcre/ostream>
+#include <dmcre/debug>
+#include <dmcre/ParserDebugger>
+#include <source_location>
+
+using namespace dmcre;
+
+class SerialObject {
+	struct {
+		std::list<std::pair<String,SerialObject>> Object;
+		std::list<SerialObject> List;
+		String string;
+		double Float;
+		Int64 Integer;
+		bool Boolean;
+	} value;
+
+public:
+	enum class Type {
+		Object,
+		List,
+		String,
+		Integer,
+		Float,
+		Boolean,
+		Null
+	} Type;
+
+	SerialObject(enum Type type): Type(type) {
+	}
+
+	SerialObject(String value): Type(Type::String) {
+		this->value.string = value;
+	}
+
+	SerialObject(const char* value): Type(Type::String) {
+		this->value.string = value;
+	}
+
+	SerialObject(double value): Type(Type::Float) {
+		this->value.Float = value;
+	}
+
+	SerialObject(Int64 value): Type(Type::Integer) {
+		this->value.Integer = value;
+	}
+
+	SerialObject(bool value): Type(Type::Boolean) {
+		this->value.Boolean = value;
+	}
+
+	decltype(value.Object)& properties() {
+		return value.Object;
+	}
+
+	decltype(value.List)& items() {
+		return value.List;
+	}
+
+	decltype(value.string)& string() {
+		return value.string;
+	}
+
+	decltype(value.Integer)& Integer() {
+		return value.Integer;
+	}
+
+	decltype(value.Float)& Float() {
+		return value.Float;
+	}
+
+	decltype(value.Boolean)& Boolean() {
+		return value.Boolean;
+	}
+
+	SerialObject& GetProperty(String name) {
+		for(auto& i : this->value.Object) {
+			if(i.first == name) {
+				return i.second;
+			}
+		}
+		throw dmcre::Error("Serial property not found");
+	}
+};
+
+#if false
+class BasicJsonReader {
+	__protected using Character = UInt32;
+
+	__protected Character c = 0x00;
+
+	__protected virtual void rewind(Character __c) = 0;
+
+	__protected virtual void rewind(String str) = 0;
+
+	__protected virtual Character getCharacter() = 0;
+
+	__private void skipWhitespace() {
+		while(c == ' ' or c == '\t' or c == '\n' or c == '\r') {
+			c = getCharacter();
+		}
+	}
+
+	__private SerialObject ReadObject() {
+		SerialObject object(SerialObject::Type::Object);
+
+		c = getCharacter();
+		skipWhitespace();
+		while(c != '}') {
+			skipWhitespace();
+			if(c == '"') {
+				c = getCharacter();
+				String PropertyName;
+				while(c != '"') {
+					PropertyName.append(c);
+					c = getCharacter();
+				}
+				c = getCharacter();
+				skipWhitespace();
+				if(c == ':') {
+					c = getCharacter();
+					skipWhitespace();
+					SerialObject PropertyValue = ReadValue();
+					object.properties().push_back({PropertyName, PropertyValue});
+					c = getCharacter();
+					skipWhitespace();
+					if(c == ',') {
+						c = getCharacter();
+						skipWhitespace();
+					}
+				} else {
+					String msg("bad json input: ");
+					msg.append(c);
+					throw Error((char*)msg.encode(String::Format::CSTRING).raw());
+				}
+			} else {
+				String msg("bad json input: ");
+				msg.append(c);
+				throw Error((char*)msg.encode(String::Format::CSTRING).raw());
+			}
+		}
+
+		return object;
+	}
+
+	__private SerialObject ReadList() {
+		SerialObject list(SerialObject::Type::List);
+
+		c = getCharacter();
+		skipWhitespace();
+		while(c != ']') {
+			skipWhitespace();
+			SerialObject ItemValue = ReadValue();
+			list.items().push_back(ItemValue);
+			c = getCharacter();
+			skipWhitespace();
+			if(c == ',') {
+				c = getCharacter();
+				skipWhitespace();
+			}
+		}
+
+		return list;
+	}
+
+	__private SerialObject ReadValue(const std::source_location& caller = std::source_location::current()) {
+		if(c == '{') {
+			return ReadObject();
+		}
+		else if(c == '[') {
+			return ReadList();
+		}
+		else if(c == '"') {
+			String value;
+			c = getCharacter();
+			while(c != '"') {
+				if(c == '\\') {
+					c = getCharacter();
+					if(c == 0x22) value.append(0x0022);
+					else if(c == 0x5C) value.append(0x005C);
+					else if(c == 0x2F) value.append(0x002F);
+					else if(c == 0x62) value.append(0x0008);
+					else if(c == 0x66) value.append(0x000C);
+					else if(c == 0x6E) value.append(0x000A);
+					else if(c == 0x72) value.append(0x000D);
+					else if(c == 0x74) value.append(0x0009);
+					else if(c == 0x75) {
+						Character bc = 0x0000;
+						for(auto i = 0;i<4;i++) {
+							bc = bc << 4;
+							c = getCharacter();
+							if(c == '0') bc |= 0x0;
+							else if(c == '1') bc |= 0x1;
+							else if(c == '2') bc |= 0x2;
+							else if(c == '3') bc |= 0x3;
+							else if(c == '4') bc |= 0x4;
+							else if(c == '5') bc |= 0x5;
+							else if(c == '6') bc |= 0x6;
+							else if(c == '7') bc |= 0x7;
+							else if(c == '8') bc |= 0x8;
+							else if(c == '9') bc |= 0x9;
+							else if(c == 'A') bc |= 0xA;
+							else if(c == 'B') bc |= 0xB;
+							else if(c == 'C') bc |= 0xC;
+							else if(c == 'D') bc |= 0xD;
+							else if(c == 'E') bc |= 0xE;
+							else if(c == 'F') bc |= 0xF;
+							else if(c == 'a') bc |= 0xa;
+							else if(c == 'b') bc |= 0xb;
+							else if(c == 'c') bc |= 0xc;
+							else if(c == 'd') bc |= 0xd;
+							else if(c == 'e') bc |= 0xe;
+							else if(c == 'f') bc |= 0xf;
+						}
+						value.append(bc);
+					}
+				} else {
+					value.append(c);
+					c = getCharacter();
+				}
+			}
+			return SerialObject(value);
+		}
+		else if((c >= '0' and c <= '9') or (c == '-')) {
+			Int64 IntegerValue = 0;
+			bool isNegative = (c == '-');
+
+			if(c == '-') {
+				c = getCharacter();
+			}
+
+			while(c >= '0' and c <= '9') {
+				IntegerValue *= 10;
+				IntegerValue += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+				c = getCharacter();
+			}
+			if(c == '.') {
+				c = getCharacter();
+				double FloatValue = IntegerValue.HostEndian();
+				double divisor = 10.0;
+				while(c >= '0' and c <= '9') {
+					FloatValue += double(c.HostEndian() - '0') / divisor;
+					divisor *= 10.0;
+					c = getCharacter();
+				}
+				if(c == 'e' or c == 'E') {
+					c = getCharacter();
+					bool expNeg = false;
+					if(c == '-') {
+						expNeg = true;
+						c = getCharacter();
+					}
+					else if(c == '+') {
+						expNeg = false;
+						c = getCharacter();
+					}
+					Int64 expValue = 0;
+					while(c >= '0' and c <= '9') {
+						expValue *= 10;
+						expValue += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+						c = getCharacter();
+					}
+					if(expNeg)expValue *= -1;
+					FloatValue = FloatValue * pow(10,expValue.HostEndian());
+				}
+				rewind(c);
+				return SerialObject(FloatValue * (isNegative ? -1 : 1));
+			} else {
+				if(c == 'e' or c == 'E') {
+					c = getCharacter();
+					bool expNeg = false;
+					if(c == '-') {
+						expNeg = true;
+						c = getCharacter();
+					}
+					else if(c == '+') {
+						expNeg = false;
+						c = getCharacter();
+					}
+					Int64 expValue = 0;
+					while(c >= '0' and c <= '9') {
+						expValue *= 10;
+						expValue += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+						c = getCharacter();
+					}
+					if(expNeg)expValue *= -1;
+					IntegerValue = IntegerValue.HostEndian() * pow(10,expValue.HostEndian());
+				}
+				rewind(c);
+				return SerialObject(IntegerValue * (isNegative ? -1 : 1));
+			}
+		}
+		else if((c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z')) {
+			String str;
+			while((c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z')) {
+				str.append(c);
+				c = getCharacter();
+			}
+			rewind(c);
+			if(str == "false") {
+				return SerialObject(false);
+			}
+			else if(str == "true") {
+				return SerialObject(true);
+			}
+			else if(str == "null") {
+				return SerialObject(SerialObject::Type::Null);
+			}
+			else {
+				rewind(str);
+				throw dmcre::Error("bad JSON input: "+std::string((char*)str.encode(String::Format::CSTRING).raw()));
+			}
+		}
+		std::cout << caller.file_name() << ":" << caller.line() << std::endl;
+		String msg("bad json input: ");
+		msg.append(c);
+		throw Error((char*)msg.encode(String::Format::CSTRING).raw());
+	}
+
+	__public SerialObject read() {
+		c = getCharacter();
+		return ReadValue();
+	}
+};
+
+class JsonReaderUTF32: public virtual BasicJsonReader {
+	__protected RandomAccessIStream& istream;
+
+	__protected virtual void rewind(Character __c) override {
+		istream.seek(istream.position() - 4);
+	}
+
+	__protected virtual void rewind(String str) override {
+		istream.seek(istream.position() - (sizeof(Character) * 4));
+	}
+
+	__protected virtual Character getCharacter() override {
+		Character __c = istream.read<UInt32_LE>().HostEndian();
+		return __c;
+	}
+
+	__public JsonReaderUTF32(RandomAccessIStream& istream): istream(istream) {}
+};
+#else
+class BasicJsonReader {
+	__protected using Character = UInt32;
+
+	__protected Character c = 0x00;
+
+	__protected virtual void rewind(Character __c) = 0;
+
+	__protected virtual void rewind(String str) = 0;
+
+	__protected virtual Character getCharacter() = 0;
+
+	__private void skipWhitespace() {
+		while(c == ' ' or c == '\t' or c == '\n' or c == '\r') {
+			c = getCharacter();
+		}
+	}
+
+	__private SerialObject ReadObject() {
+		SerialObject object(SerialObject::Type::Object);
+		
+		c = getCharacter();
+		skipWhitespace();
+
+		while(true) {
+			if(c == '}') {
+				break;
+			}
+			else if(c == '"') {
+				auto name = ReadString().string();
+				c = getCharacter();
+				skipWhitespace();
+				if(c == ':') {
+					c = getCharacter();
+					skipWhitespace();
+					auto value = ReadValue();
+					object.properties().push_back({name,value});
+					c = getCharacter();
+					skipWhitespace();
+					if(c == ',') {
+						c = getCharacter();
+						skipWhitespace();
+					}
+				} else {
+					throw dmcre::Error("bad json input");
+				}
+			}
+			else {
+				throw dmcre::Error("bad json input");
+			}
+		}
+
+		return object;
+	}
+
+	__private SerialObject ReadList() {
+		SerialObject list(SerialObject::Type::List);
+
+		c = getCharacter();
+		skipWhitespace();
+
+		while(true) {
+			if(c == ']') {
+				break;
+			}
+			else {
+				auto value = ReadValue();
+				list.items().push_back(value);
+				c = getCharacter();
+				skipWhitespace();
+				if(c == ',') {
+					c = getCharacter();
+					skipWhitespace();
+				}
+			}
+		}
+
+		return list;
+	}
+
+	__private SerialObject ReadString() {
+		SerialObject value(SerialObject::Type::String);
+
+		c = getCharacter();
+
+		while(true) {
+			if(c == '"') {
+				break;
+			}
+			else {
+				if(c == '\\') {
+					c = getCharacter();
+					if(c == 0x22) value.string().append(0x0022);
+					else if(c == 0x5C) value.string().append(0x005C);
+					else if(c == 0x2F) value.string().append(0x002F);
+					else if(c == 0x62) value.string().append(0x0008);
+					else if(c == 0x66) value.string().append(0x000C);
+					else if(c == 0x6E) value.string().append(0x000A);
+					else if(c == 0x72) value.string().append(0x000D);
+					else if(c == 0x74) value.string().append(0x0009);
+					else if(c == 0x75) {
+						Character bc = 0x0000;
+						for(auto i = 0;i<4;i++) {
+							bc = bc << 4;
+							c = getCharacter();
+							if(c == '0') bc |= 0x0;
+							else if(c == '1') bc |= 0x1;
+							else if(c == '2') bc |= 0x2;
+							else if(c == '3') bc |= 0x3;
+							else if(c == '4') bc |= 0x4;
+							else if(c == '5') bc |= 0x5;
+							else if(c == '6') bc |= 0x6;
+							else if(c == '7') bc |= 0x7;
+							else if(c == '8') bc |= 0x8;
+							else if(c == '9') bc |= 0x9;
+							else if(c == 'A') bc |= 0xA;
+							else if(c == 'B') bc |= 0xB;
+							else if(c == 'C') bc |= 0xC;
+							else if(c == 'D') bc |= 0xD;
+							else if(c == 'E') bc |= 0xE;
+							else if(c == 'F') bc |= 0xF;
+							else if(c == 'a') bc |= 0xa;
+							else if(c == 'b') bc |= 0xb;
+							else if(c == 'c') bc |= 0xc;
+							else if(c == 'd') bc |= 0xd;
+							else if(c == 'e') bc |= 0xe;
+							else if(c == 'f') bc |= 0xf;
+						}
+						value.string().append(bc);
+					}
+					c = getCharacter();
+				} else {
+					value.string().append(c);
+					c = getCharacter();
+				}
+			}
+		}
+
+		return value;
+	}
+
+	__private SerialObject ReadNumber() {
+		SerialObject value(SerialObject::Type::Integer);
+
+		Int64 IntegerValue = 0;
+		bool isNegative = false;
+
+		if(c == '-') {
+			c = getCharacter();
+			isNegative = true;
+		}
+
+		while(c >= '0' and c <= '9') {
+			value.Integer() *= 10;
+			value.Integer() += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+			c = getCharacter();
+		}
+		if(c == '.') {
+			c = getCharacter();
+
+			value.Type = SerialObject::Type::Float;
+			value.Float() = IntegerValue.HostEndian();
+			double divisor = 10.0;
+			while(c >= '0' and c <= '9') {
+				value.Float() += double(c.HostEndian() - '0') / divisor;
+				divisor *= 10.0;
+				c = getCharacter();
+			}
+			if(c == 'e' or c == 'E') {
+				c = getCharacter();
+				bool expNeg = false;
+				if(c == '-') {
+					expNeg = true;
+					c = getCharacter();
+				}
+				else if(c == '+') {
+					expNeg = false;
+					c = getCharacter();
+				}
+				Int64 expValue = 0;
+				while(c >= '0' and c <= '9') {
+					expValue *= 10;
+					expValue += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+					c = getCharacter();
+				}
+				if(expNeg)expValue *= -1;
+				value.Float() *= pow(10,expValue.HostEndian());
+			}
+			rewind(c);
+			value.Float() *= (isNegative ? -1 : 1);
+		} else {
+			if(c == 'e' or c == 'E') {
+				c = getCharacter();
+				bool expNeg = false;
+				if(c == '-') {
+					expNeg = true;
+					c = getCharacter();
+				}
+				else if(c == '+') {
+					expNeg = false;
+					c = getCharacter();
+				}
+				Int64 expValue = 0;
+				while(c >= '0' and c <= '9') {
+					expValue *= 10;
+					expValue += c.extend<64>().ToSigned_Reinterpret() - Int64('0');
+					c = getCharacter();
+				}
+				if(expNeg)expValue *= -1;
+				IntegerValue = IntegerValue.HostEndian() * pow(10,expValue.HostEndian());
+			}
+			rewind(c);
+			value.Integer() *= (isNegative ? -1 : 1);
+			return value;
+		}
+
+		throw dmcre::Error("unreachable");
+	}
+
+	__private SerialObject ReadBoolean() {
+		SerialObject value(SerialObject::Type::Boolean);
+
+		if(c == 'f') {
+			c = getCharacter();
+			if(c != 'a') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'l') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 's') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'e') {
+				throw dmcre::Error("bad json input");
+			}
+			value.Boolean() = false;
+			return value;
+		}
+		else if(c == 't') {
+			c = getCharacter();
+			if(c != 'r') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'u') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'e') {
+				throw dmcre::Error("bad json input");
+			}
+			value.Boolean() = true;
+			return value;
+		}
+		else {
+			throw dmcre::Error("bad json input");
+		}
+
+		throw dmcre::Error("unreachable");
+	}
+
+	__private SerialObject ReadNull() {
+		SerialObject value(SerialObject::Type::Null);
+
+		if(c == 'n') {
+			c = getCharacter();
+			if(c != 'u') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'l') {
+				throw dmcre::Error("bad json input");
+			}
+			c = getCharacter();
+			if(c != 'l') {
+				throw dmcre::Error("bad json input");
+			}
+			return value;
+		}
+
+		throw dmcre::Error("bad json input");
+	}
+
+	__private SerialObject ReadValue(const std::source_location& caller = std::source_location::current()) {
+		if(c == '{') {
+			return ReadObject();
+		}
+		else if(c == '[') {
+			return ReadList();
+		}
+		else if(c == '"') {
+			return ReadString();
+		}
+		else if((c >= '0' and c <= '9') or (c == '-')) {
+			return ReadNumber();
+		}
+		else if(c == 't') {
+			return ReadBoolean();
+		}
+		else if(c == 'f') {
+			return ReadBoolean();
+		}
+		else if(c == 'n') {
+			return ReadNull();
+		}
+		std::cout << caller.file_name() << ":" << caller.line() << std::endl;
+		String msg("bad json input: ");
+		msg.append(c);
+		throw Error((char*)msg.encode(String::Format::CSTRING).raw());
+	}
+
+	__public SerialObject read() {
+		c = getCharacter();
+		return ReadValue();
+	}
+};
+
+class JsonReaderUTF32: public virtual BasicJsonReader {
+	__protected RandomAccessIStream& istream;
+
+	__protected virtual void rewind(Character __c) override {
+		istream.seek(istream.position() - 4);
+	}
+
+	__protected virtual void rewind(String str) override {
+		istream.seek(istream.position() - (sizeof(Character) * 4));
+	}
+
+	__protected virtual Character getCharacter() override {
+		Character __c = istream.read<UInt32_LE>().HostEndian();
+		return __c;
+	}
+
+	__public JsonReaderUTF32(RandomAccessIStream& istream): istream(istream) {}
+};
+#endif
+
+class JsonReaderUTF8: public virtual BasicJsonReader {
+	__protected RandomAccessIStream& istream;
+
+	__private uint64_t pos_char = 0;
+
+	__protected virtual void rewind(Character __c) override {
+		auto leading0s = std::countl_zero(__c.HostEndian());
+		if(leading0s >= 25) {
+			istream.seek(istream.position() - 1);
+		}
+		else if(leading0s >= 21) {
+			istream.seek(istream.position() - 2);
+		}
+		else if(leading0s >= 16) {
+			istream.seek(istream.position() - 3);
+		}
+		else {
+			istream.seek(istream.position() - 4);
+		}
+		pos_char--;
+	}
+
+	__protected virtual void rewind(String str) override {
+		for(auto c : str) {
+			rewind(c);
+		}
+	}
+
+	__protected virtual Character getCharacter() override {
+		Character __c = 0;
+
+		auto oct0 = istream.read<Byte>().ValueInMemory();
+		auto leading1s = std::countl_one(oct0);
+		if(leading1s == 0) {
+			//debug::report();
+			__c |= 0b01111111 & oct0;
+		}
+		else if(leading1s == 2) {
+			//debug::report();
+			auto oct1 = istream.read<Byte>().ValueInMemory();
+			__c |= 0b11100000 & oct0;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct1;
+		}
+		else if(leading1s == 3) {
+			//debug::report();
+			auto oct1 = istream.read<Byte>().ValueInMemory();
+			auto oct2 = istream.read<Byte>().ValueInMemory();
+			__c |= 0b11110000 & oct0;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct1;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct2;
+		}
+		else if(leading1s == 4) {
+			//debug::report();
+			auto oct1 = istream.read<Byte>().ValueInMemory();
+			auto oct2 = istream.read<Byte>().ValueInMemory();
+			auto oct3 = istream.read<Byte>().ValueInMemory();
+			__c |= 0b11111000 & oct0;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct1;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct2;
+			__c = __c << 6;
+			__c |= 0b00111111 & oct3;
+		}
+
+		pos_char++;
+
+		return __c;
+	}
+
+	__public JsonReaderUTF8(RandomAccessIStream& istream): istream(istream) {
+	}
+
+	__public ~JsonReaderUTF8() {
+	}
+};
+
+class BasicJsonWriter {
+	__public using Character = UInt32;
+
+	__protected virtual void WriteCharacter(Character c) = 0;
+
+	__protected virtual void WriteLineBreak() = 0;
+
+	__protected UInt64 indentLevel = 0;
+
+	__protected virtual void WriteIndent() = 0;
+
+	__protected void WriteValue(SerialObject& value) {
+		if(value.Type == SerialObject::Type::Object) {
+			WriteCharacter('{');
+			WriteLineBreak();
+			indentLevel++;
+			for(auto& i : value.properties()) {
+				WriteIndent();
+				WriteCharacter('"');
+				for(auto c : i.first) {
+					WriteCharacter(c);
+				}
+				WriteCharacter('"');
+				WriteCharacter(':');
+				WriteCharacter(' ');
+				WriteValue(i.second);
+				if(&i != &value.properties().back()) {
+					WriteCharacter(',');
+				}
+				WriteLineBreak();
+			}
+			indentLevel--;
+			WriteIndent();
+			WriteCharacter('}');
+		}
+		else if(value.Type == SerialObject::Type::List) {
+			WriteCharacter('[');
+			WriteLineBreak();
+			indentLevel++;
+			for(auto& i : value.items()) {
+				WriteIndent();
+				WriteValue(i);
+				if(&i != &value.items().back()) {
+					WriteCharacter(',');
+				}
+				WriteLineBreak();
+			}
+			indentLevel--;
+			WriteIndent();
+			WriteCharacter(']');
+		}
+		else if(value.Type == SerialObject::Type::String) {
+			WriteCharacter('"');
+			for(auto c : value.string()) {
+				if(c == '\\') {
+					WriteCharacter('\\');
+				}
+				else if(c == '"') {
+					WriteCharacter('\\');
+				}
+				WriteCharacter(c);
+			}
+			WriteCharacter('"');
+		}
+		else if(value.Type == SerialObject::Type::Boolean) {
+			if(value.Boolean() == true) {
+				WriteCharacter('t');
+				WriteCharacter('r');
+				WriteCharacter('u');
+				WriteCharacter('e');
+			}
+			else if(value.Boolean() == false) {
+				WriteCharacter('f');
+				WriteCharacter('a');
+				WriteCharacter('l');
+				WriteCharacter('s');
+				WriteCharacter('e');
+			}
+		}
+		else if(value.Type == SerialObject::Type::Null) {
+			WriteCharacter('n');
+			WriteCharacter('u');
+			WriteCharacter('l');
+			WriteCharacter('l');
+		}
+		else if(value.Type == SerialObject::Type::Integer) {
+			std::string str = std::to_string(value.Integer().HostEndian());
+			for(auto c : str) {
+				WriteCharacter(c);
+			}
+		}
+		else if(value.Type == SerialObject::Type::Float) {
+			std::string str = std::to_string(value.Float());
+			for(auto c : str) {
+				WriteCharacter(c);
+			}
+		}
+	}
+};
+
+class JsonWriterUTF32: public virtual BasicJsonWriter {
+	__private RandomAccessOStream& ostream;
+
+	__protected void WriteCharacter(Character c) {
+		ostream.write(c.LittleEndian());
+	}
+
+	__private Character LineBreakChar = '\n';
+	__private Character IndentChar = '\t';
+
+	__protected virtual void WriteLineBreak() {
+		WriteCharacter(LineBreakChar);
+	}
+
+	__protected virtual void WriteIndent() {
+		for(UInt64 i = 0;i<indentLevel;i++) {
+			WriteCharacter(IndentChar);
+		}
+	}
+
+	__public JsonWriterUTF32(RandomAccessOStream& ostream): ostream(ostream) {}
+
+	__public void write(SerialObject& value) {
+		return WriteValue(value);
+	}
+};
+
+class JsonWriterUTF8: public virtual BasicJsonWriter {
+	__private RandomAccessOStream& ostream;
+
+	__protected void WriteCharacter(Character c) {
+		ostream.write(c.truncate<8>().LittleEndian());
+	}
+
+	__private Character LineBreakChar = '\n';
+	__private Character IndentChar = '\t';
+
+	__protected virtual void WriteLineBreak() {
+		WriteCharacter(LineBreakChar);
+	}
+
+	__protected virtual void WriteIndent() {
+		for(UInt64 i = 0;i<indentLevel;i++) {
+			WriteCharacter(IndentChar);
+		}
+	}
+
+	__public JsonWriterUTF8(RandomAccessOStream& ostream): ostream(ostream) {}
+
+	__public void write(SerialObject& value) {
+		return WriteValue(value);
+	}
+};

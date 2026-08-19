@@ -1,0 +1,35 @@
+#pragma once
+#include <string>
+#include <vector>
+#include "foundation"
+
+// this is a dummy header, the build system generates the real config header when copying headers to the installation directory
+
+namespace dmcre {
+	namespace config {
+		namespace install {
+			DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string root DMCRE_IF_INCLUDE_LEVEL_0(= "");
+			namespace headers {
+				DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string cxx DMCRE_IF_INCLUDE_LEVEL_0(= "");
+			}
+			DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string runtimeDylib DMCRE_IF_INCLUDE_LEVEL_0(= "");
+			DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string cliExe DMCRE_IF_INCLUDE_LEVEL_0(= "");
+		}
+		namespace sdk {
+			namespace cxx {
+				DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string compiler DMCRE_IF_INCLUDE_LEVEL_0(= "");
+				DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string standard DMCRE_IF_INCLUDE_LEVEL_0(= "");
+				DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::vector<std::string> include DMCRE_IF_INCLUDE_LEVEL_0(= std::initializer_list<std::string>({}));
+			}
+			namespace windows {
+				namespace lib {
+					DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string um DMCRE_IF_INCLUDE_LEVEL_0(= "");
+				}
+			}
+		}
+		namespace target {
+			DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API const std::string platform DMCRE_IF_INCLUDE_LEVEL_0(= "");
+		}
+		constexpr long long version = 0;
+	}
+}

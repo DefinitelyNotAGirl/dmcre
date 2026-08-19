@@ -99,7 +99,7 @@ namespace dmcre {
 }
 #endif
 
-#include <dmcre/Buffer.hpp>
+#include <dmcre/buffer>
 namespace dmcre {
 	UInt64 DynamicBuffer::size() const {
 		return m_size;
@@ -160,7 +160,7 @@ namespace dmcre {
 		}
 	}
 	
-	DynamicBuffer transformBufferToBase64(const ReadableContiguousInteropBuffer& input) {
+	DMCRE_PUBLIC_API DynamicBuffer transformBufferToBase64(const ReadableContiguousInteropBuffer& input) {
 		static const char Base64Chars[64] = {
 			'A','B','C','D','E','F','G','H',
 			'I','J','K','L','M','N','O','P',

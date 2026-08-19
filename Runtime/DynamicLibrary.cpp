@@ -5,14 +5,53 @@
 //  Created by Lilith on 05.04.26.
 //
 
-#include <dmcre/DynamicLibrary.hpp>
-#include <dmcre/Error.hpp>
-#include <dmcre/debug.hpp>
+#include <dmcre/DynamicLibrary>
+#include <dmcre/error>
+#include <dmcre/debug>
 
-#include <dlfcn.h>
-#include <mach-o/dyld.h>
+#if not defined(_WIN32)
+	#include <dlfcn.h>
+	#include <mach-o/dyld.h>
+#endif
 
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
 namespace dmcre {
+#if defined(_WIN32)
+	class DynamicLibraryPlatformData {
+	public:
+		HMODULE dll = nullptr;
+	};
+
+	DynamicLibrary::DynamicLibrary(std::string path,std::vector<DynamicLibrary::LoadFlag> flags) {
+		this->data = new DynamicLibraryPlatformData;
+
+		DynamicLibraryPlatformData* PlatformData = (DynamicLibraryPlatformData*)this->data;
+		PlatformData->dll = LoadLibraryA(path.c_str());
+		if(PlatformData->dll == nullptr) {
+			DWORD errorCode = GetLastError();
+			throw Error(std::string("LoadLibrary failed: ") + std::to_string(errorCode));
+		}
+	}
+
+	void DynamicLibrary::unload() {
+		DynamicLibraryPlatformData* PlatformData = (DynamicLibraryPlatformData*)this->data;
+		if(PlatformData->dll) {
+			FreeLibrary(PlatformData->dll);
+		}
+	}
+
+	void* DynamicLibrary::getSymbol(std::string symbol) {
+		DynamicLibraryPlatformData* PlatformData = (DynamicLibraryPlatformData*)this->data;
+
+		FARPROC sym = GetProcAddress(PlatformData->dll, symbol.c_str());
+		if(sym == nullptr) {
+			throw Error(std::string("symbol not found: ")+symbol);
+		}
+		return reinterpret_cast<void*>(sym);
+	}
+#else
 	class DynamicLibraryPlatformData {
 	public:
 		void* dll = nullptr;
@@ -51,4 +90,5 @@ namespace dmcre {
 		}
 		return sym;
 	}
+#endif
 }

@@ -5,6 +5,8 @@
 //  Created by Lilith on 07.08.26.
 //
 
+#if defined (__APPLE__)
+
 #include <dmcre/Semaphore.hpp>
 #include <dispatch/dispatch.h>
 
@@ -31,3 +33,5 @@ namespace dmcre {
 		delete impl;
 	}
 }
+
+#endif

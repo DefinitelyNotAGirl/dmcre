@@ -1,5 +1,5 @@
 #define DMCRE_ARC_CPP
-#include <dmcre/ARC.hpp>
+#include <dmcre/ARC>
 
 #include <iomanip>
 #include <map>
@@ -9,9 +9,8 @@
 #include <filesystem>
 #include <source_location>
 
-#include <dmcre/debug.hpp>
-#include <dmcre/JSON.hpp>
-#include <dmcre/foundation.hpp>
+#include <dmcre/debug>
+#include <dmcre/foundation>
 #include <string>
 
 #define DMCRE_ARC_DEBUG 0
@@ -28,7 +27,9 @@ struct ControlDebugInfo {
 	std::map<void*,ReferenceDebugInfo> referenceDebugInfo;
 };
 
-std::map<ARC::Control*,ControlDebugInfo> controlDebugInfo;
+#if DMCRE_ARC_DEBUG == 1
+	std::map<ARC::Control*,ControlDebugInfo> controlDebugInfo;
+#endif
 
 void ARC::registerToTable(ARC::Control* control,const std::source_location& caller) {
 #if DMCRE_ARC_DEBUG == 1
@@ -105,6 +106,7 @@ void ARC::debug_unregister_ref(void* ref_this,ARC::Control* control,const std::s
 }
 
 void ARC::dumpTable() {
+#if DMCRE_ARC_DEBUG == 1
 	std::cout << "###################################### ARC DEBUG ######################################" << std::endl;
 	for(auto& control : controlDebugInfo) {
 		std::cout << "control: " << std::hex << control.first << std::endl;
@@ -118,4 +120,5 @@ void ARC::dumpTable() {
 		}
 	}
 	std::cout << "#######################################################################################" << std::endl;
+#endif
 }

@@ -5,7 +5,7 @@
 //  Created by Lilith on 11.08.26.
 //
 
-#include <dmcre/Console.hpp>
+#include <dmcre/console>
 #include <sstream>
 #include <chrono>
 
@@ -21,7 +21,12 @@ namespace dmcre {
 			message.append(0x0a);
 
 			auto outbuf = message.encode(String::Format::ASCII);
+#if defined(_WIN32)
+			std::cout.write(reinterpret_cast<const char*>(outbuf.raw()), outbuf.size().HostEndian());
+			std::cout.flush();
+#else
 			write(STDOUT_FILENO,outbuf.raw(),outbuf.size().HostEndian());
+#endif
 		}
 
 		__private virtual void __warn(const String& value,const std::source_location& caller) {
@@ -34,7 +39,12 @@ namespace dmcre {
 			message.append(0x0a);
 			
 			auto outbuf = message.encode(String::Format::ASCII);
+#if defined(_WIN32)
+			std::cout.write(reinterpret_cast<const char*>(outbuf.raw()), outbuf.size().HostEndian());
+			std::cout.flush();
+#else
 			write(STDOUT_FILENO,outbuf.raw(),outbuf.size().HostEndian());
+#endif
 		}
 
 		__private virtual void __error(const String& value,const std::source_location& caller) {
@@ -47,7 +57,12 @@ namespace dmcre {
 			message.append(0x0a);
 			
 			auto outbuf = message.encode(String::Format::ASCII);
+#if defined(_WIN32)
+			std::cout.write(reinterpret_cast<const char*>(outbuf.raw()), outbuf.size().HostEndian());
+			std::cout.flush();
+#else
 			write(STDOUT_FILENO,outbuf.raw(),outbuf.size().HostEndian());
+#endif
 		}
 
 		__private virtual void __debug(const String& value,const std::source_location& caller) {
@@ -60,7 +75,12 @@ namespace dmcre {
 			message.append(0x0a);
 			
 			auto outbuf = message.encode(String::Format::ASCII);
+#if defined(_WIN32)
+			std::cout.write(reinterpret_cast<const char*>(outbuf.raw()), outbuf.size().HostEndian());
+			std::cout.flush();
+#else
 			write(STDOUT_FILENO,outbuf.raw(),outbuf.size().HostEndian());
+#endif
 		}
 	};
 	

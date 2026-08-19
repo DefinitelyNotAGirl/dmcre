@@ -1,0 +1,16 @@
+{
+	"clangd.arguments": [
+		"--compile-commands-dir=${workspaceFolder}",
+		"--header-insertion=never",
+		"-j=4"
+	],
+	"clangd.onConfigChanged": "restart",
+	"clangd.restartAfterCrash": true,
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"[cpp]": {
+		"editor.defaultFormatter": "clangd.clangd"
+	},
+    "files.associations": {
+        "Headers/C++/**/*": "cpp"
+    }
+}
