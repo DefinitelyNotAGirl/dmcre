@@ -1,0 +1,21 @@
+"page";
+
+const Type = "CXXMethod";
+
+
+function ShortDescription() {
+	return (<div>dmcre::TCP::IOStream::write</div>);
+}
+
+function FullDescription() {
+	return (<div>dmcre::TCP::IOStream::write</div>);
+}
+
+function parameter_output() {
+	return (<div>output</div>);
+}
+
+function parameter_timeout() {
+	return (<div>timeout</div>);
+}
+

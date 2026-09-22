@@ -11,8 +11,8 @@
 #include <functional>
 #include <atomic>
 
-#include "type"
-#include "foundation"
+#include <dmcre/foundation>
+#include <dmcre/string>
 
 #include <list>
 
@@ -104,7 +104,7 @@ public:
 	class NullReferenceException : public std::runtime_error {
 	public:
 		NullReferenceException(const std::type_info& type):
-		std::runtime_error("ARC::NullReferenceException attempting to access object of type "+std::string((char*)::Typename(type).encode(String::Format::CSTRING).raw())) {}
+		std::runtime_error("ARC::NullReferenceException attempting to access object of type "+std::string((char*)dmcre::Typename(type).encode(dmcre::String::Format::CSTRING).raw())) {}
 			
 		NullReferenceException():
 		std::runtime_error("ARC::NullReferenceException attempting to access object of unknown type") {}
@@ -113,7 +113,7 @@ public:
 		std::runtime_error("ARC::NullReferenceException attempting to access object of unknown type from "+std::string(caller.file_name())+":"+std::to_string(caller.line())) {}
 			
 		NullReferenceException(const std::type_info& type,const std::source_location& caller):
-		std::runtime_error("ARC::NullReferenceException attempting to access object of type "+std::string((char*)::Typename(type).encode(String::Format::CSTRING).raw())+" from "+std::string(caller.file_name())+":"+std::to_string(caller.line())) {}
+		std::runtime_error("ARC::NullReferenceException attempting to access object of type "+std::string((char*)dmcre::Typename(type).encode(dmcre::String::Format::CSTRING).raw())+" from "+std::string(caller.file_name())+":"+std::to_string(caller.line())) {}
 	};
 		
 	class DynamicReference {

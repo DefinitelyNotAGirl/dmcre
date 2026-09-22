@@ -67,7 +67,12 @@ int main(int argc, char** argv) {
 		std::cerr << "ERROR: no script source file provided" << std::endl;
 		exit(1);
 	}
-	
+
+	load::initialize();
+
+	load::cxx(load::Domain::WorkingDirectory,argv[1]);
+
+#if false
 	{
 #ifdef _WIN32
 		int pid = GetCurrentProcessId();
@@ -78,25 +83,25 @@ int main(int argc, char** argv) {
 #endif
 
 #if defined(__APPLE__)
-		if(!std::filesystem::exists(HOME + "/Library/Application Support/" + BUNDLE_ID)) {
-			std::filesystem::create_directory(HOME + "/Library/Application Support/" + BUNDLE_ID);
+		if(!std::filesystem::exists(HOME + "/Library/Application Support/dmcre")) {
+			std::filesystem::create_directory(HOME + "/Library/Application Support/dmcre");
 		}
 		
-		if(!std::filesystem::exists(HOME + "/Library/Application Support/" + BUNDLE_ID + "/runtime/")) {
-			std::filesystem::create_directory(HOME + "/Library/Application Support/" + BUNDLE_ID + "/runtime/");
+		if(!std::filesystem::exists(HOME + "/Library/Application Support/dmcre/runtime/")) {
+			std::filesystem::create_directory(HOME + "/Library/Application Support/dmcre/runtime/");
 		}
 		
-		dmcre::RuntimeDirectory = HOME + "/Library/Application Support/" + BUNDLE_ID + "/runtime/" + std::to_string(pid);
+		dmcre::RuntimeDirectory = HOME + "/Library/Application Support/dmcre/runtime/" + std::to_string(pid);
 #elif defined(_WIN32)
-		if(not std::filesystem::exists(HOME + "\\AppData\\Local\\" + BUNDLE_ID)) {
-			std::filesystem::create_directory(HOME + "\\AppData\\Local\\" + BUNDLE_ID);
+		if(not std::filesystem::exists(HOME + "\\AppData\\Local\\dmcre")) {
+			std::filesystem::create_directory(HOME + "\\AppData\\Local\\dmcre");
 		}
 		
-		if(not std::filesystem::exists(HOME + "\\AppData\\Local\\" + BUNDLE_ID + "\\runtime")) {
-			std::filesystem::create_directory(HOME + "\\AppData\\Local\\" + BUNDLE_ID + "\\runtime");
+		if(not std::filesystem::exists(HOME + "\\AppData\\Local\\dmcre\\runtime")) {
+			std::filesystem::create_directory(HOME + "\\AppData\\Local\\dmcre\\runtime");
 		}
 		
-		dmcre::RuntimeDirectory = HOME + "\\AppData\\Local\\" + BUNDLE_ID + "\\runtime\\" + std::to_string(pid);
+		dmcre::RuntimeDirectory = HOME + "\\AppData\\Local\\dmcre\\runtime\\" + std::to_string(pid);
 #else
 #error missing logic
 #endif
@@ -114,19 +119,22 @@ int main(int argc, char** argv) {
 	std::signal(SIGTERM, CrashHandler);
 	std::signal(SIGINT,  CrashHandler);
 
-    IncludeDirectories.push_back(config::install::headers::cxx);
     for(auto& dir : config::sdk::cxx::include) {
         load::cxx::SystemIncludeDirectories.push_back(dir);
     }
 
 	CatchAll([&]{
+		load::cppMacros.insert({"DMCRE_MODULE",std::string("\"")+argv[1]+"\""});
 		load::cpp(load::Domain::WorkingDirectory,argv[1]);
 	});
-	
+
 	// clean up and exit
 	CleanRuntimeDirectory();
+#endif
 }
 
 void CleanRuntimeDirectory() {
+#if false
 	std::filesystem::remove_all(dmcre::RuntimeDirectory);
+#endif
 }

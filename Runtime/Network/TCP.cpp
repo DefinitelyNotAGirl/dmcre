@@ -7,7 +7,7 @@
 
 #if defined (__APPLE__)
 
-#include <dmcre/Network.hpp>
+#include <dmcre/network>
 
 #include "Impl.hpp"
 
@@ -15,7 +15,7 @@
 
 #include <thread>
 
-#include <dmcre/debug.hpp>
+#include <dmcre/debug>
 
 namespace dmcre {
 	class TCP::IOStream::Impl_T {

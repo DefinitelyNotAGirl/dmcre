@@ -1,105 +1,5 @@
-#if false
-#include <dmcre/DynamicBuffer.hpp>
-namespace dmcre {
-	DynamicBuffer::~DynamicBuffer() {
-		if(this->m_address == nullptr) return;
-		if(this->bufferOwnsMemory == false)return;
-		free(this->m_address);
-	}
-
-	DynamicBuffer::DynamicBuffer(UInt64 size) {
-		if(size == 0) {
-			this->m_size = 0;
-			this->m_address = 0;
-			return;
-		}
-		this->m_address = (Byte*)malloc(size.truncate<32>().ToSigned_Reinterpret().HostEndian());
-		this->m_size = size;
-	}
-
-	DynamicBuffer::DynamicBuffer(const DynamicBuffer& buf) {
-		this->m_address = (Byte*)malloc(buf.size().truncate<32>().ToSigned_Reinterpret().HostEndian());
-		this->m_size = buf.size();
-		this->bufferOwnsMemory = buf.bufferOwnsMemory;
-		memcpy(this->m_address,buf.m_address,buf.m_size.HostEndian());
-	}
-
-	DynamicBuffer::DynamicBuffer(DynamicBuffer&& buf) noexcept {
-		this->bufferOwnsMemory = buf.bufferOwnsMemory;
-
-		this->m_address = buf.m_address;
-		buf.m_address = nullptr;
-
-		this->m_size = buf.m_size;
-		buf.m_size = 0;
-	}
-
-	DynamicBuffer& DynamicBuffer::operator=(const DynamicBuffer& buf) {
-		this->~DynamicBuffer();
-
-		this->m_address = (Byte*)malloc(buf.size().truncate<32>().ToSigned_Reinterpret().HostEndian());
-		this->m_size = buf.size();
-		this->bufferOwnsMemory = buf.bufferOwnsMemory;
-		memcpy(this->m_address,buf.m_address,this->m_size.HostEndian());
-		return *this;
-	}
-
-	void DynamicBuffer::resize(UInt64 size) {
-		this->m_size = size;
-		this->m_address = (Byte*)realloc(this->m_address,size.truncate<32>().ToSigned_Reinterpret().HostEndian());
-	}
-
-	void DynamicBuffer::copyToPosition(const DynamicBuffer& src,UInt64 position) {
-		if((position + src.size()) > this->m_size) {
-			throw OutOfBoundsException({
-				.BufferSize = this->m_size,
-				.RequestedPosition = position + src.size()
-			});
-		}
-
-		for(UInt64 i = 0;i<src.size();i++) {
-			this->byte(position+i) = src.byte(i);
-		}
-	}
-
-	DynamicBuffer DynamicBuffer::cloneExternalBuffer(const void* source,UInt64 bytes) {
-		DynamicBuffer buf(bytes);
-		const Byte* ext = (const Byte*)source;
-		for(UInt64 i = 0;i<bytes;i++) {
-			buf.byte(i) = ext[i.HostEndian()];
-		}
-		return buf;
-	}
-
-	void DynamicBuffer::dropFront(UInt64 bytes) {
-		if(bytes > this->m_size) {
-			throw OutOfBoundsException({
-				.BufferSize = this->m_size,
-				.RequestedPosition = bytes
-			});
-		}
-		memmove(this->m_address,this->m_address+bytes,(this->m_size-bytes).HostEndian());
-		this->resize(this->m_size-bytes);
-	}
-
-	DynamicBuffer DynamicBuffer::partialCopy(UInt64 start,UInt64 bytes) const {
-		if(bytes+start > this->m_size) {
-			throw OutOfBoundsException({
-				.BufferSize = this->m_size,
-				.RequestedPosition = bytes+start
-			});
-		}
-
-		DynamicBuffer out(bytes);
-		for(UInt64 i = 0;i<bytes;i++) {
-			out.byte(i) = this->byte(start + i);
-		}
-		return out;
-	}
-}
-#endif
-
 #include <dmcre/buffer>
+
 namespace dmcre {
 	UInt64 DynamicBuffer::size() const {
 		return m_size;
@@ -200,7 +100,7 @@ namespace dmcre {
 		}
 		
 		if(bits.size() != 0) {
-			throw Error("did a dumb");
+			//throw Error("did a dumb");
 		}
 		
 		while(output.size() % 4 != 0) {

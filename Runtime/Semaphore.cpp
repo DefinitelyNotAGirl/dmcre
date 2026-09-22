@@ -7,7 +7,7 @@
 
 #if defined (__APPLE__)
 
-#include <dmcre/Semaphore.hpp>
+#include <dmcre/semaphore>
 #include <dispatch/dispatch.h>
 
 namespace dmcre {

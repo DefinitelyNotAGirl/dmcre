@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "foundation"
-#include "buffer"
+#include <dmcre/foundation>
+#include <dmcre/buffer>
 
 namespace dmcre {
 	class BufferEncoder {

@@ -1,0 +1,6 @@
+snapshot_Language("C++");snapshot_SourceFile("Headers/C++/dmcre/time");
+snapshot_SourceLine(150);
+snapshot_QualifiedName("dmcre::Timer");
+snapshot_UnqualifiedName("Timer");
+snapshot_TagTypeKind("Class");
+snapshot_isAbstract(true);

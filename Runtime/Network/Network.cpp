@@ -8,7 +8,7 @@
 #if defined (__APPLE__)
 
 #include <dispatch/dispatch.h>
-#include <dmcre/Network.hpp>
+#include <dmcre/network>
 #include "Impl.hpp"
 
 namespace dmcre {

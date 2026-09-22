@@ -5,7 +5,10 @@
 #include <dmcre/istream>
 #include <dmcre/ostream>
 #include <dmcre/debug>
+#if false
 #include <dmcre/ParserDebugger>
+#endif
+#include <dmcre/string>
 #include <source_location>
 
 using namespace dmcre;

@@ -1,5 +1,95 @@
 #pragma once
 
+#if true
+
+#include <filesystem>
+
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/VirtualFileSystem.h>
+#include <llvm/IR/Module.h>
+
+#include <clang/Basic/SourceManager.h>
+#include <clang/Basic/FileManager.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/TargetInfo.h>
+
+#include <dmcre/console>
+
+namespace dmcre::load {
+	void initialize();
+
+	extern llvm::LLVMContext llvmContext;
+
+	extern std::unique_ptr<llvm::orc::LLJIT> llvmJIT;
+
+	extern clang::FileManager* clangFileManager;
+	extern clang::SourceManager* clangSourceManager;
+
+	extern clang::DiagnosticsEngine* clangDiagnosticsEngine;
+	extern clang::DiagnosticConsumer* clangDiagnosticConsumer;
+
+	extern clang::TargetInfo* clangTargetInfo;
+	
+	class LlvmVirtualFileSystem : public llvm::vfs::FileSystem {
+		__public virtual llvm::ErrorOr<llvm::vfs::Status> status(const llvm::Twine& Path) override {
+			console.info("status("+Path.str()+")");
+
+			return llvm::vfs::Status(
+				llvm::Twine("test"),
+				llvm::sys::fs::UniqueID(0,0),
+				llvm::sys::TimePoint<>(std::chrono::system_clock::now()),
+				0,
+				0,
+				0,
+				llvm::sys::fs::file_type::block_file,
+				llvm::sys::fs::perms::all_all
+			);
+		}
+
+		__public virtual llvm::ErrorOr<std::unique_ptr<llvm::vfs::File>> openFileForRead(const llvm::Twine& Path) override {
+			console.info("openFileForRead("+Path.str()+")");
+
+			return llvm::ErrorOr<std::unique_ptr<llvm::vfs::File>>(std::make_error_code(std::errc(1)));
+		}
+
+		__public virtual llvm::vfs::directory_iterator dir_begin(const llvm::Twine& Dir, std::error_code& EC) override {
+			console.info("dir_begin("+Dir.str()+")");
+			EC = std::make_error_code(std::errc(1));
+
+			throw std::runtime_error("dir_begin");
+		}
+
+		__private std::filesystem::path cwd;
+
+		__public virtual std::error_code setCurrentWorkingDirectory(const llvm::Twine& Path) override {
+			cwd = Path.str();
+			return std::make_error_code(std::errc(0));
+		}
+
+		__public virtual llvm::ErrorOr<std::string> getCurrentWorkingDirectory() const override {
+			return cwd.string();
+		}
+	};
+
+	extern llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> llvmVirtualFileSystem;
+
+	enum class Domain {
+		System, // dmcre installation directory
+		WorkingDirectory, // cwd
+		User, // user home directory
+		Absolute // absolute path
+	};
+
+	std::filesystem::path ResolvePath(Domain domain,std::filesystem::path path);
+
+	void llvmModule(std::unique_ptr<llvm::Module> module);
+
+	void cxx(std::string code,std::string name);
+	void cxx(Domain domain,std::filesystem::path path);
+}
+
+#else
+
 #include <string>
 
 #include <map>
@@ -13,11 +103,14 @@ namespace dmcre {
 namespace dmcre::load {
     namespace cxx {
 		DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API std::vector<std::string> SystemIncludeDirectories;
+		DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API bool enableRTTI DMCRE_IF_INCLUDE_LEVEL_0(= true);
     }
 
 	extern DMCRE_PUBLIC_API std::map<std::string,std::string> cppMacros;
 	extern DMCRE_PUBLIC_API std::list<std::string> frameworks;
 	extern DMCRE_PUBLIC_API std::list<std::string> frameworkDirectories;
+
+	DMCRE_IF_INCLUDE_LEVEL_NOT_0(extern) DMCRE_PUBLIC_API std::vector<std::string> librarySearchPaths;
 	
 	extern DMCRE_PUBLIC_API std::list<std::string> swiftSources;
 	extern DMCRE_PUBLIC_API std::string swiftModuleName;
@@ -65,3 +158,4 @@ namespace dmcre::load {
 	DMCRE_PUBLIC_API DynamicLibrary Swift(Domain domain,std::string path);
 	DMCRE_PUBLIC_API DynamicLibrary dll(Domain domain,std::string path);
 }
+#endif

@@ -27,8 +27,8 @@ namespace dmcre::net {
 }
 #endif
 
-#include <dmcre/foundation.hpp>
-#include <dmcre/iostream.hpp>
+#include <dmcre/foundation>
+#include <dmcre/iostream>
 
 namespace dmcre {
 	class IPv6Address {

@@ -1,0 +1,25 @@
+// this tsconfig bullshit makes me violent, i just wish this shit would just work for once, but it just doesn't, dont make me spoon-feed everything to the compiler if you're not gonna give me actually meaningful control, 'fuck's sake
+
+{
+	"compilerOptions": {
+		"module": "es2022",
+		"moduleResolution": "bundler",
+		"moduleDetection": "legacy",
+		"target": "ES2025",
+		"lib": [
+			"DOM",
+			"ES2025"
+		],
+		"jsx": "preserve",
+		"types": [
+			"csstype",
+			"react"
+		]
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"**/*.d.ts",
+		"../snapshot.d.ts"
+	]
+}

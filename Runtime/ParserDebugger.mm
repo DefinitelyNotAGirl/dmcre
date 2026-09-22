@@ -5,7 +5,9 @@
 //  Created by Lilith on 09.08.26.
 //
 
-#include <dmcre/ParserDebugger.hpp>
+#if false
+
+#include <dmcre/ParserDebugger>
 
 #import <AppKit/AppKit.h>
 #import <CoreText/CoreText.h>
@@ -106,3 +108,5 @@ namespace dmcre {
 		}
 	}
 }
+
+#endif

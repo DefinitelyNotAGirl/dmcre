@@ -7,7 +7,7 @@
 
 #include <dispatch/Dispatch.h>
 
-#include <dmcre/Buffer.hpp>
+#include <dmcre/buffer>
 
 namespace dmcre {
 	inline void copyDispatchData(dispatch_data_t& source,WriteableBuffer& destination) {

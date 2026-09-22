@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "foundation"
+#include <dmcre/foundation>
 
 // this is a dummy header, the build system generates the real config header when copying headers to the installation directory
 

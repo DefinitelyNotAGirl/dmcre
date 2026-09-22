@@ -7,7 +7,7 @@
 
 #if defined (__APPLE__)
 
-#include <dmcre/Network.hpp>
+#include <dmcre/network>
 
 #include "Impl.hpp"
 

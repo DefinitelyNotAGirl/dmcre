@@ -1,0 +1,11 @@
+snapshot_Language("C++");snapshot_SourceFile("Headers/C++/dmcre/buffer");
+snapshot_SourceLine(111);
+snapshot_QualifiedName("dmcre::SinkBuffer::~SinkBuffer");
+snapshot_UnqualifiedName("~SinkBuffer");
+snapshot_returnType({
+	"kind": "Builtin",
+	"name": "void"
+});
+snapshot_dataType({
+	"kind": "FunctionProto"
+});

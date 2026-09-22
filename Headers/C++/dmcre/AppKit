@@ -5,7 +5,7 @@
 //  Created by Lilith on 09.08.26.
 //
 
-#include "foundation"
+#include <dmcre/foundation>
 
 namespace dmcre {
 	DMCRE_PUBLIC_API void AppKit_Main();

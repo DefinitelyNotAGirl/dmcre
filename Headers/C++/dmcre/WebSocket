@@ -26,8 +26,8 @@ namespace dmcre {
 		BitField<decltype(Byte1),7> MASK() {return decltype(MASK())(Byte1);}
 		BitField<decltype(Byte1),0,6> PayloadLength() {return decltype(PayloadLength())(Byte1);}
 	};
-	
-	class WebSocketMaskCoder: public BufferEncoder, public BufferDecoder {
+
+	class DMCRE_DEPRECATED(MacOS) WebSocketMaskCoder: public BufferEncoder, public BufferDecoder {
 		ReadableBuffer& mask;
 	public:
 		virtual void Encode(const ReadableBuffer& input,WriteableBuffer& output) override {

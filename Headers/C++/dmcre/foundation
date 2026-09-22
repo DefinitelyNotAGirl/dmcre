@@ -1,5 +1,4 @@
-#ifndef DMCRE_FOUNDATION_0
-#define DMCRE_FOUNDATION_0
+#pragma once
 
 #include <stdexcept>
 #ifdef __APPLE__
@@ -97,6 +96,12 @@
 #define DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_9(____code____) ____code____
 #define DMCRE_IF_INCLUDE_LEVEL_NOT_0(____code____) DMCRE_HELPER_CAT(DMCRE_IF_INCLUDE_LEVEL_NOT_0_FOR_,__INCLUDE_LEVEL__)(____code____)
 
+#define DMCRE_DEPRECATED(platform) [[clang::annotate("deprecated," #platform)]]
+#define DMCRE_EXPERIMENTAL(platform) [[clang::annotate("experimental," #platform)]]
+#define DMCRE_STABLE(platform) [[clang::annotate("stable," #platform)]]
+
+#define DMCRE_ISSUE(issue) [[clang::annotate("link," #issue)]]
+
 #define anonymous static auto DMCRE_HELPER_CAT(____anonymous_,__COUNTER__) =
 
 #define DMCRE_GLOBAL_FUNCTION(signature,body) \
@@ -119,7 +124,7 @@ public:
 	}
 };
 
-#include "type"
+#include <dmcre/type>
 
 // ██╗███╗   ██╗████████╗███████╗ ██████╗ ███████╗██████╗     ████████╗██╗   ██╗██████╗ ███████╗███████╗
 // ██║████╗  ██║╚══██╔══╝██╔════╝██╔════╝ ██╔════╝██╔══██╗    ╚══██╔══╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔════╝
@@ -128,7 +133,7 @@ public:
 // ██║██║ ╚████║   ██║   ███████╗╚██████╔╝███████╗██║  ██║       ██║      ██║   ██║     ███████╗███████║
 // ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝       ╚═╝      ╚═╝   ╚═╝     ╚══════╝╚══════╝
 
-#include "integer"
+#include <dmcre/integer>
 
 // ██╗   ██╗███╗   ██╗██╗████████╗███████╗
 // ██║   ██║████╗  ██║██║╚══██╔══╝██╔════╝
@@ -276,22 +281,6 @@ public:
 	UniquelyOwned(){}
 };
 
-#endif
-
-#ifndef DMCRE_FOUNDATION_TYPENAME
-#define DMCRE_FOUNDATION_TYPENAME
-#include <dmcre/string>
-dmcre::String Typename(const std::type_info& type);
-
-template<typename T>
-inline dmcre::String Typename() {
-	return Typename(typeid(T));
-};
-#endif
-
-#ifndef DMCRE_FOUNDATION_1
-#define DMCRE_FOUNDATION_1
-
 template<typename A,typename B>
 bool Implements(B& b) {
 	return dynamic_cast<A*>(&b) != nullptr;
@@ -319,5 +308,3 @@ public:
 	// this exists for the sole purpose of allowing functions to be called at load-time without having to occupy memory with a useless integer
 	NoData(){}
 };
-
-#endif

@@ -1,3 +1,5 @@
+#if false
+
 #include <dmcre/foundation>
 #include <dmcre/debug>
 #include <dmcre/serial>
@@ -24,6 +26,10 @@
 
 #if not defined(_WIN32)
 	#include <dlfcn.h>
+#endif
+
+#if defined(__APPLE__)
+	#include <CommonCrypto/CommonCrypto.h>
 #endif
 
 #include "private.hpp"
@@ -175,10 +181,16 @@ static std::string SHA512Hash(const std::string& data) {
 	}
 	return hexStr;
 #else
-	// Unix/Linux fallback - use existing base64 method
-	auto inBuf = String(data.c_str()).encode(String::Format::ASCII);
-	auto base64Buf = transformBufferToBase64(inBuf);
-	return std::string((const char*)(String::decode(base64Buf,String::Format::ASCII).encode(String::Format::CSTRING).raw()));
+	std::vector<std::byte> hash(64);
+	CC_SHA512(data.data(), data.size(), (unsigned char*)hash.data());
+	std::string hexStr;
+	hexStr.reserve(128);
+	for (int i = 0; i < 64; i++) {
+		char buf[3];
+		snprintf(buf, sizeof(buf), "%02x", hash[i]);
+		hexStr += buf;
+	}
+	return hexStr;
 #endif
 }
 
@@ -487,23 +499,33 @@ namespace dmcre::load {
 				for(auto dir : cxx::SystemIncludeDirectories) {
 					args.push_back("-isystem"+dir);
 				}
+
+				for(auto& i : cppMacros) {
+					args.push_back("-D"+i.first+"="+i.second);
+				}
 			},
 			[&](const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& args){
 				out_dll = out+".dll";
 
-				args.push_back("-Xlinker");
-				args.push_back("/NOEXP");
-				args.push_back("-Xlinker");
-				args.push_back("/NOIMPLIB");
-				args.push_back("-Xlinker");
-				args.push_back(dmcre::config::install::runtimeDylib);
-                args.push_back("-Xlinker");
-                args.push_back("/libpath:"+config::sdk::windows::lib::um);
+				#if defined(_WIN32)
+					args.push_back("-Xlinker");
+					args.push_back("/NOEXP");
+					args.push_back("-Xlinker");
+					args.push_back("/NOIMPLIB");
+					args.push_back("-Xlinker");
+					args.push_back(dmcre::config::install::runtimeDylib);
+                	args.push_back("-Xlinker");
+                	args.push_back("/libpath:"+config::sdk::windows::lib::um);
+				#endif
 				args.push_back("-x");
 				args.push_back("c++");
 				args.push_back(source);
 				args.push_back("-o");
 				args.push_back(out_dll);
+				for(auto& i : config::sdk::librarySearchPaths) {
+					args.push_back("-L");
+					args.push_back(i);
+				}
 			},
 			[&](const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& dependencies){
 			},
@@ -701,6 +723,11 @@ namespace dmcre::load {
 				}
 
 				args.push_back("-Wno-pragma-once-outside-header");
+
+				if(not cxx::enableRTTI) {
+					args.push_back("-fno-rtti");
+					args.push_back("-DDMCRE_NO_RTTI");
+				}
 			},
 			[&](const std::string& source,const std::string& sourceDigest,const std::string& out,std::vector<std::string>& args){
 				out_object = out+".o";
@@ -936,12 +963,18 @@ namespace dmcre::load {
 		std::vector<std::string> CompilerArgs;
 		CompilerArgs.push_back(dmcre::config::sdk::cxx::compiler);
 		CompilerArgs.push_back("-g");
-		CompilerArgs.push_back("-target");
-		CompilerArgs.push_back("x86_64-pc-windows-msvc");
-		CompilerArgs.push_back("-Xlinker");
-		CompilerArgs.push_back("/libpath:"+config::sdk::windows::lib::um);
+		#if defined(_WIN32)
+			CompilerArgs.push_back("-target");
+			CompilerArgs.push_back("x86_64-pc-windows-msvc");
+			CompilerArgs.push_back("-Xlinker");
+			CompilerArgs.push_back("/libpath:"+config::sdk::windows::lib::um);
+		#endif
 		#if defined(__APPLE__)
-			CompilerArgs.push_back("-mmacos-version-min="+TargetPlatform);
+			CompilerArgs.push_back("-mmacos-version-min="+config::target::MacOSX::version);
+			for(std::string i : config::sdk::cxx::frameworkDirectories) {
+				CompilerArgs.push_back("-F");
+				CompilerArgs.push_back(i);
+			}
 			for(std::string i : frameworkDirectories) {
 				CompilerArgs.push_back("-F");
 				CompilerArgs.push_back(i);
@@ -951,8 +984,20 @@ namespace dmcre::load {
 				CompilerArgs.push_back(i);
 			}
 		#endif
+		for(auto& i : config::sdk::librarySearchPaths) {
+			CompilerArgs.push_back("-L");
+			CompilerArgs.push_back(i);
+		}
+		for(auto& i : load::librarySearchPaths) {
+			CompilerArgs.push_back("-L");
+			CompilerArgs.push_back(i);
+		}
 		if(useEngineLibrary) {
-			CompilerArgs.push_back(dmcre::config::install::runtimeDylib);
+			#if defined(_WIN32)
+				CompilerArgs.push_back(dmcre::config::install::runtimeDylib);
+			#else
+				CompilerArgs.push_back(dmcre::config::install::runtimeDll);
+			#endif
 		}
 		for(auto& object : objects) {
 			CompilerArgs.push_back(object.object);
@@ -988,7 +1033,7 @@ namespace dmcre::load {
 		CompilerArgs.push_back("-g");
 		CompilerArgs.push_back("-shared");
 		#if not defined(_WIN32)
-			CompilerArgs.push_back("-mmacos-version-min="+TargetPlatform);
+			CompilerArgs.push_back("-mmacos-version-min="+config::target::MacOSX::version);
 			for(std::string i : frameworkDirectories) {
 				CompilerArgs.push_back("-F");
 				CompilerArgs.push_back(i);
@@ -1036,7 +1081,7 @@ namespace dmcre::load {
 		CompilerArgs.push_back("-g");
 		CompilerArgs.push_back("-shared");
 		#if not defined(_WIN32)
-			CompilerArgs.push_back("-mmacos-version-min="+TargetPlatform);
+			CompilerArgs.push_back("-mmacos-version-min="+config::target::MacOSX::version);
 			for(std::string i : frameworkDirectories) {
 				CompilerArgs.push_back("-F");
 				CompilerArgs.push_back(i);
@@ -1080,3 +1125,5 @@ namespace dmcre::load {
 		);
 	}
 }
+
+#endif

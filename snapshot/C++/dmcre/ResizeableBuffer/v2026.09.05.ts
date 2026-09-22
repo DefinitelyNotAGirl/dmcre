@@ -1,0 +1,6 @@
+snapshot_Language("C++");snapshot_SourceFile("Headers/C++/dmcre/buffer");
+snapshot_SourceLine(43);
+snapshot_QualifiedName("dmcre::ResizeableBuffer");
+snapshot_UnqualifiedName("ResizeableBuffer");
+snapshot_TagTypeKind("Class");
+snapshot_isAbstract(true);

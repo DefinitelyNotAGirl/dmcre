@@ -9,7 +9,7 @@
 
 #include <Network/Network.h>
 
-#include <dmcre/Network.hpp>
+#include <dmcre/network>
 
 namespace dmcre {
 	class NetworkEndpoint::Impl_T {

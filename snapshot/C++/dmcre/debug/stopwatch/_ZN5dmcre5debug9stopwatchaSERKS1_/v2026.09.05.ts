@@ -1,0 +1,29 @@
+snapshot_Language("C++");snapshot_SourceFile("Headers/C++/dmcre/debug");
+snapshot_SourceLine(42);
+snapshot_QualifiedName("dmcre::debug::stopwatch::operator=");
+snapshot_UnqualifiedName("operator=");
+snapshot_returnType({
+	"kind": "LValueReference",
+	"referencee": {
+		"kind": "CXXRecord",
+		"name": "stopwatch",
+		"parent": {
+			"kind": "Namespace",
+			"name": "dmcre"
+		}
+	}
+});
+snapshot_parameter({
+	"kind": "LValueReference",
+	"referencee": {
+		"kind": "CXXRecord",
+		"name": "stopwatch",
+		"parent": {
+			"kind": "Namespace",
+			"name": "dmcre"
+		}
+	}
+},"")
+snapshot_dataType({
+	"kind": "FunctionProto"
+});
