@@ -1,0 +1,18 @@
+#pragma once
+
+namespace dmcre {
+	enum class Platform {
+		Unknown,
+		MacOS,
+		Linux,
+		Windows
+	};
+
+	#if defined(_WIN32)
+		constexpr Platform platform = Platform::Windows;
+	#elif defined(__APPLE__)
+		constexpr Platform platform = Platform::MacOS;
+	#else
+		constexpr Platform platform = Platform::Unknown;
+	#endif
+}

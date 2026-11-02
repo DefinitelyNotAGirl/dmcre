@@ -1,0 +1,38 @@
+#pragma once
+
+#include <dmcre/foundation>
+
+#include <vector>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <cerrno>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#endif
+
+namespace dmcre {
+	namespace dmcred {
+		DMCRE_PUBLIC_API extern std::string SharedMemoryName;
+
+		struct SharedMemory {
+			sockaddr serverEndoint;
+		};
+
+		enum class MessageType : uint32_t {
+			Invalid,
+			OpenLspPipe,
+		};
+
+		struct OpenLspPipeMessage {
+			MessageType type = MessageType::OpenLspPipe;
+			char pipeName[255];
+		};
+
+		DMCRE_PUBLIC_API SharedMemory* getSharedMemory();
+
+		DMCRE_PUBLIC_API void post(std::byte* message, size_t size);
+	}
+}

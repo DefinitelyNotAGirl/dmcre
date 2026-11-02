@@ -1,0 +1,56 @@
+#pragma once
+
+#include <dmcre/Foundation>
+
+namespace dmcre::reflection {
+	class ReflectedDecl {
+		__public std::string Name;
+
+		__public enum class Type {
+			Class,
+			Struct,
+			Enum,
+			Field,
+			Variable,
+			Function,
+			Parameter
+		};
+
+		__public const enum Type Type;
+
+		__public ReflectedDecl(const enum Type p_Type,std::string p_Name): Type(p_Type),Name(p_Name) {
+		}
+	};
+
+	class ReflectedClassDecl : public ReflectedDecl {
+		__public std::vector<ReflectedDecl*> children;
+
+		__public ReflectedClassDecl(std::string p_Name): ReflectedDecl(Type::Class,p_Name) {
+		}
+	};
+
+	class ReflectedFieldDecl : public ReflectedDecl {
+		__public const std::type_info& type;
+		__public long long offset;
+
+		__public ReflectedFieldDecl(std::string p_Name,const std::type_info& p_Type,long long p_offset): ReflectedDecl(Type::Field,p_Name),type(p_Type),offset(p_offset) {
+		}
+	};
+
+	class ReflectedEnumDecl : public ReflectedDecl {
+		__public std::vector<ReflectedDecl*> children;
+
+		__public ReflectedEnumDecl(std::string p_Name): ReflectedDecl(Type::Enum,p_Name) {
+		}
+	};
+
+	class ReflectedFunctionDecl : public ReflectedDecl {
+		__public ReflectedDecl* returnType;
+		__public std::vector<ReflectedDecl*> parameters;
+
+		__public ReflectedFunctionDecl(std::string p_Name): ReflectedDecl(Type::Function,p_Name) {
+		}
+	};
+
+	DMCRE_PUBLIC_API ReflectedClassDecl* RegisterClassByStdTypeInfo(const std::type_info& type);
+}

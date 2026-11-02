@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"types": [
+			"node"
+		]
+	},
+	"files": [
+		"documentation/core.d.ts"
+	],
+	"include": [
+		"documentation/core.d.ts",
+		"docs.build.mts"
+	]
+}

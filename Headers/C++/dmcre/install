@@ -1,0 +1,9 @@
+#pragma once
+
+#include <string>
+
+#include <dmcre/foundation>
+
+namespace dmcre {
+	DMCRE_PUBLIC_API extern std::string InstallationDirectory;
+}

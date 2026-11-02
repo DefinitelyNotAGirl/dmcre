@@ -1,0 +1,707 @@
+#pragma once
+
+#include <dmcre/foundation>
+
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Lex/Preprocessor.h>
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/ASTConsumer.h>
+#include <clang/Sema/CodeCompleteConsumer.h>
+#include <clang/Basic/CodeGenOptions.h>
+#include <clang/Frontend/FrontendOptions.h>
+#include <clang/Serialization/ASTDeserializationListener.h>
+
+namespace dmcre::compile {
+	class BorrowedConsumer : public clang::ASTConsumer {
+		clang::ASTConsumer* consumer;
+
+	  public:
+		BorrowedConsumer(clang::ASTConsumer* p_consumer) : consumer(p_consumer) {
+		}
+
+		virtual ~BorrowedConsumer() {}
+
+		/// Initialize - This is called to initialize the consumer, providing the
+		/// ASTContext.
+		virtual void Initialize(clang::ASTContext& Context) {
+			return consumer->Initialize(Context);
+		}
+
+		/// HandleTopLevelDecl - Handle the specified top-level declaration.  This is
+		/// called by the parser to process every top-level Decl*.
+		///
+		/// \returns true to continue parsing, or false to abort parsing.
+		virtual bool HandleTopLevelDecl(clang::DeclGroupRef D) {
+			return consumer->HandleTopLevelDecl(D);
+		}
+
+		/// This callback is invoked each time an inline (method or friend)
+		/// function definition in a class is completed.
+		virtual void HandleInlineFunctionDefinition(clang::FunctionDecl* D) {
+			return consumer->HandleInlineFunctionDefinition(D);
+		}
+
+		/// HandleInterestingDecl - Handle the specified interesting declaration. This
+		/// is called by the AST reader when deserializing things that might interest
+		/// the consumer. The default implementation forwards to HandleTopLevelDecl.
+		virtual void HandleInterestingDecl(clang::DeclGroupRef D) {
+			return consumer->HandleInterestingDecl(D);
+		}
+
+		/// HandleTranslationUnit - This method is called when the ASTs for entire
+		/// translation unit have been parsed.
+		virtual void HandleTranslationUnit(clang::ASTContext& Ctx) {
+			return consumer->HandleTranslationUnit(Ctx);
+		}
+
+		/// HandleTagDeclDefinition - This callback is invoked each time a TagDecl
+		/// (e.g. struct, union, enum, class) is completed.  This allows the client to
+		/// hack on the type, which can occur at any point in the file (because these
+		/// can be defined in declspecs).
+		virtual void HandleTagDeclDefinition(clang::TagDecl* D) {
+			return consumer->HandleTagDeclDefinition(D);
+		}
+
+		/// This callback is invoked the first time each TagDecl is required to
+		/// be complete.
+		virtual void HandleTagDeclRequiredDefinition(const clang::TagDecl* D) {
+			return consumer->HandleTagDeclRequiredDefinition(D);
+		}
+
+		/// Invoked when a function is implicitly instantiated.
+		/// Note that at this point it does not have a body, its body is
+		/// instantiated at the end of the translation unit and passed to
+		/// HandleTopLevelDecl.
+		virtual void HandleCXXImplicitFunctionInstantiation(clang::FunctionDecl* D) {
+			return consumer->HandleCXXImplicitFunctionInstantiation(D);
+		}
+
+		/// Handle the specified top-level declaration that occurred inside
+		/// and ObjC container.
+		/// The default implementation ignored them.
+		virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef D) {
+			return consumer->HandleTopLevelDeclInObjCContainer(D);
+		}
+
+		/// Handle an ImportDecl that was implicitly created due to an
+		/// inclusion directive.
+		/// The default implementation passes it to HandleTopLevelDecl.
+		virtual void HandleImplicitImportDecl(clang::ImportDecl* D) {
+			return consumer->HandleImplicitImportDecl(D);
+		}
+
+		/// CompleteTentativeDefinition - Callback invoked at the end of a translation
+		/// unit to notify the consumer that the given tentative definition should be
+		/// completed.
+		///
+		/// The variable declaration itself will be a tentative
+		/// definition. If it had an incomplete array type, its type will
+		/// have already been changed to an array of size 1. However, the
+		/// declaration remains a tentative definition and has not been
+		/// modified by the introduction of an implicit zero initializer.
+		virtual void CompleteTentativeDefinition(clang::VarDecl* D) {
+			return consumer->CompleteTentativeDefinition(D);
+		}
+
+		/// CompleteExternalDeclaration - Callback invoked at the end of a translation
+		/// unit to notify the consumer that the given external declaration should be
+		/// completed.
+		virtual void CompleteExternalDeclaration(clang::DeclaratorDecl* D) {
+			return consumer->CompleteExternalDeclaration(D);
+		}
+
+		/// Callback invoked when an MSInheritanceAttr has been attached to a
+		/// CXXRecordDecl.
+		virtual void AssignInheritanceModel(clang::CXXRecordDecl* RD) {
+			return consumer->AssignInheritanceModel(RD);
+		}
+
+		/// HandleCXXStaticMemberVarInstantiation - Tell the consumer that this
+		// variable has been instantiated.
+		virtual void HandleCXXStaticMemberVarInstantiation(clang::VarDecl* D) {
+			return consumer->HandleCXXStaticMemberVarInstantiation(D);
+		}
+
+		/// Callback to handle the end-of-translation unit attachment of OpenACC
+		/// routine declaration information.
+		virtual void HandleOpenACCRoutineReference(const clang::FunctionDecl* FD, const clang::OpenACCRoutineDecl* RD) {
+			return consumer->HandleOpenACCRoutineReference(FD, RD);
+		}
+
+		/// Callback involved at the end of a translation unit to
+		/// notify the consumer that a vtable for the given C++ class is
+		/// required.
+		///
+		/// \param RD The class whose vtable was used.
+		virtual void HandleVTable(clang::CXXRecordDecl* RD) {
+			return consumer->HandleVTable(RD);
+		}
+
+		/// If the consumer is interested in entities getting modified after
+		/// their initial creation, it should return a pointer to
+		/// an ASTMutationListener here.
+		virtual clang::ASTMutationListener* GetASTMutationListener() {
+			return consumer->GetASTMutationListener();
+		}
+
+		/// If the consumer is interested in entities being deserialized from
+		/// AST files, it should return a pointer to a ASTDeserializationListener here
+		virtual clang::ASTDeserializationListener* GetASTDeserializationListener() {
+			return consumer->GetASTDeserializationListener();
+		}
+
+		/// PrintStats - If desired, print any statistics.
+		virtual void PrintStats() {
+			return consumer->PrintStats();
+		}
+
+		/// This callback is called for each function if the Parser was
+		/// initialized with \c SkipFunctionBodies set to \c true.
+		///
+		/// \return \c true if the function's body should be skipped. The function
+		/// body may be parsed anyway if it is needed (for instance, if it contains
+		/// the code completion point or is constexpr).
+		virtual bool shouldSkipFunctionBody(clang::Decl* D) {
+			return consumer->shouldSkipFunctionBody(D);
+		}
+	};
+
+	class BorrowedPPCallbacks : public clang::PPCallbacks {
+		clang::PPCallbacks* PPCallbacks;
+	  public:
+		virtual ~BorrowedPPCallbacks() = default;
+
+		BorrowedPPCallbacks(clang::PPCallbacks* p_PPCallbacks): PPCallbacks(p_PPCallbacks) {}
+
+		/// Callback invoked whenever a source file is entered or exited.
+		///
+		/// \param Loc Indicates the new location.
+		/// \param PrevFID the file that was exited if \p Reason is ExitFile or the
+		/// the file before the new one entered for \p Reason EnterFile.
+		virtual void FileChanged(clang::SourceLocation Loc, FileChangeReason Reason,
+								 clang::SrcMgr::CharacteristicKind FileType,
+								 clang::FileID PrevFID = clang::FileID()) {
+			this->PPCallbacks->FileChanged(Loc,Reason,FileType,PrevFID);
+		}
+
+		/// Callback invoked whenever the \p Lexer moves to a different file for
+		/// lexing. Unlike \p FileChanged line number directives and other related
+		/// pragmas do not trigger callbacks to \p LexedFileChanged.
+		///
+		/// \param FID The \p FileID that the \p Lexer moved to.
+		///
+		/// \param Reason Whether the \p Lexer entered a new file or exited one.
+		///
+		/// \param FileType The \p CharacteristicKind of the file the \p Lexer moved
+		/// to.
+		///
+		/// \param PrevFID The \p FileID the \p Lexer was using before the change.
+		///
+		/// \param Loc The location where the \p Lexer entered a new file from or the
+		/// location that the \p Lexer moved into after exiting a file.
+		virtual void LexedFileChanged(clang::FileID FID, LexedFileChangeReason Reason,
+									  clang::SrcMgr::CharacteristicKind FileType,
+									  clang::FileID PrevFID, clang::SourceLocation Loc) {
+			this->PPCallbacks->LexedFileChanged(FID,Reason,FileType,PrevFID,Loc);
+									  }
+
+		/// Callback invoked whenever a source file is skipped as the result
+		/// of header guard optimization.
+		///
+		/// \param SkippedFile The file that is skipped instead of entering \#include
+		///
+		/// \param FilenameTok The file name token in \#include "FileName" directive
+		/// or macro expanded file name token from \#include MACRO(PARAMS) directive.
+		/// Note that FilenameTok contains corresponding quotes/angles symbols.
+		virtual void FileSkipped(const clang::FileEntryRef& SkippedFile,
+								 const clang::Token& FilenameTok,
+								 clang::SrcMgr::CharacteristicKind FileType) {
+									this->PPCallbacks->FileSkipped(SkippedFile,FilenameTok,FileType);
+								 }
+
+		/// Callback invoked whenever the preprocessor cannot find a file for an
+		/// embed directive.
+		///
+		/// \param FileName The name of the file being included, as written in the
+		/// source code.
+		///
+		/// \returns true to indicate that the preprocessor should skip this file
+		/// and not issue any diagnostic.
+		virtual bool EmbedFileNotFound(clang::StringRef FileName) { 
+			return this->PPCallbacks->EmbedFileNotFound(FileName);
+		 }
+
+		/// Callback invoked whenever an embed directive has been processed,
+		/// regardless of whether the embed will actually find a file.
+		///
+		/// \param HashLoc The location of the '#' that starts the embed directive.
+		///
+		/// \param FileName The name of the file being included, as written in the
+		/// source code.
+		///
+		/// \param IsAngled Whether the file name was enclosed in angle brackets;
+		/// otherwise, it was enclosed in quotes.
+		///
+		/// \param File The actual file that may be included by this embed directive.
+		///
+		/// \param Params The parameters used by the directive.
+		virtual void EmbedDirective(clang::SourceLocation HashLoc, clang::StringRef FileName,
+									bool IsAngled, clang::OptionalFileEntryRef File,
+									const clang::LexEmbedParametersResult& Params) {
+										return this->PPCallbacks->EmbedDirective(HashLoc,FileName,IsAngled,File,Params);
+									}
+
+		/// Callback invoked whenever the preprocessor cannot find a file for an
+		/// inclusion directive.
+		///
+		/// \param FileName The name of the file being included, as written in the
+		/// source code.
+		///
+		/// \returns true to indicate that the preprocessor should skip this file
+		/// and not issue any diagnostic.
+		virtual bool FileNotFound(clang::StringRef FileName) { 
+			return this->PPCallbacks->FileNotFound(FileName);
+		 }
+
+		/// Callback invoked whenever an inclusion directive of
+		/// any kind (\c \#include, \c \#import, etc.) has been processed, regardless
+		/// of whether the inclusion will actually result in an inclusion.
+		///
+		/// \param HashLoc The location of the '#' that starts the inclusion
+		/// directive.
+		///
+		/// \param IncludeTok The token that indicates the kind of inclusion
+		/// directive, e.g., 'include' or 'import'.
+		///
+		/// \param FileName The name of the file being included, as written in the
+		/// source code.
+		///
+		/// \param IsAngled Whether the file name was enclosed in angle brackets;
+		/// otherwise, it was enclosed in quotes.
+		///
+		/// \param FilenameRange The character range of the quotes or angle brackets
+		/// for the written file name.
+		///
+		/// \param File The actual file that may be included by this inclusion
+		/// directive.
+		///
+		/// \param SearchPath Contains the search path which was used to find the file
+		/// in the file system. If the file was found via an absolute include path,
+		/// SearchPath will be empty. For framework includes, the SearchPath and
+		/// RelativePath will be split up. For example, if an include of "Some/Some.h"
+		/// is found via the framework path
+		/// "path/to/Frameworks/Some.framework/Headers/Some.h", SearchPath will be
+		/// "path/to/Frameworks/Some.framework/Headers" and RelativePath will be
+		/// "Some.h".
+		///
+		/// \param RelativePath The path relative to SearchPath, at which the include
+		/// file was found. This is equal to FileName except for framework includes.
+		///
+		/// \param SuggestedModule The module suggested for this header, if any.
+		///
+		/// \param ModuleImported Whether this include was translated into import of
+		/// \p SuggestedModule.
+		///
+		/// \param FileType The characteristic kind, indicates whether a file or
+		/// directory holds normal user code, system code, or system code which is
+		/// implicitly 'extern "C"' in C++ mode.
+		///
+		virtual void InclusionDirective(clang::SourceLocation HashLoc,
+										const clang::Token& IncludeTok, clang::StringRef FileName,
+										bool IsAngled, clang::CharSourceRange FilenameRange,
+										clang::OptionalFileEntryRef File,
+										clang::StringRef SearchPath, clang::StringRef RelativePath,
+										const clang::Module* SuggestedModule,
+										bool ModuleImported,
+										clang::SrcMgr::CharacteristicKind FileType) {
+											return this->PPCallbacks->InclusionDirective(HashLoc,IncludeTok,FileName,IsAngled,FilenameRange,File,SearchPath,RelativePath,SuggestedModule,ModuleImported,FileType);
+										}
+
+		/// Callback invoked whenever a submodule was entered.
+		///
+		/// \param M The submodule we have entered.
+		///
+		/// \param ImportLoc The location of import directive token.
+		///
+		/// \param ForPragma If entering from pragma directive.
+		///
+		virtual void EnteredSubmodule(clang::Module* M, clang::SourceLocation ImportLoc,
+									  bool ForPragma) {
+										return this->PPCallbacks->EnteredSubmodule(M,ImportLoc,ForPragma);
+									  }
+
+		/// Callback invoked whenever a submodule was left.
+		///
+		/// \param M The submodule we have left.
+		///
+		/// \param ImportLoc The location of import directive token.
+		///
+		/// \param ForPragma If entering from pragma directive.
+		///
+		virtual void LeftSubmodule(clang::Module* M, clang::SourceLocation ImportLoc,
+								   bool ForPragma) {
+									return this->PPCallbacks->LeftSubmodule(M,ImportLoc,ForPragma);
+								   }
+
+		/// Callback invoked whenever there was an explicit module-import
+		/// syntax.
+		///
+		/// \param ImportLoc The location of import directive token.
+		///
+		/// \param Path The identifiers (and their locations) of the module
+		/// "path", e.g., "std.vector" would be split into "std" and "vector".
+		///
+		/// \param Imported The imported module; can be null if importing failed.
+		///
+		virtual void moduleImport(clang::SourceLocation ImportLoc,
+								  clang::ModuleIdPath Path,
+								  const clang::Module* Imported) {
+									return this->PPCallbacks->moduleImport(ImportLoc,Path,Imported);
+		}
+
+		/// Callback invoked whenever a module load was skipped due to enabled
+		/// single-module-parse-mode.
+		///
+		/// \param Skipped The module that was not loaded.
+		///
+		virtual void moduleLoadSkipped(clang::Module* Skipped) {
+			return this->PPCallbacks->moduleLoadSkipped(Skipped);
+		}
+
+		/// Callback invoked when the end of the main file is reached.
+		///
+		/// No subsequent callbacks will be made.
+		virtual void EndOfMainFile() {
+			return this->PPCallbacks->EndOfMainFile();
+		}
+
+		/// Callback invoked when a \#ident or \#sccs directive is read.
+		/// \param Loc The location of the directive.
+		/// \param str The text of the directive.
+		///
+		virtual void Ident(clang::SourceLocation Loc, clang::StringRef str) {
+			return this->PPCallbacks->Ident(Loc, str);
+		}
+
+		/// Callback invoked when start reading any pragma directive.
+		virtual void PragmaDirective(clang::SourceLocation Loc,
+									 clang::PragmaIntroducerKind Introducer) {
+										return this->PPCallbacks->PragmaDirective(Loc, Introducer);
+		}
+
+		/// Callback invoked when a \#pragma comment directive is read.
+		virtual void PragmaComment(clang::SourceLocation Loc, const clang::IdentifierInfo* Kind,
+								   clang::StringRef Str) {
+									return this->PPCallbacks->PragmaComment(Loc,Kind,Str);
+		}
+
+		/// Callback invoked when a \#pragma mark comment is read.
+		virtual void PragmaMark(clang::SourceLocation Loc, clang::StringRef Trivia) {
+			return this->PPCallbacks->PragmaMark(Loc,Trivia);
+		}
+
+		/// Callback invoked when a \#pragma detect_mismatch directive is
+		/// read.
+		virtual void PragmaDetectMismatch(clang::SourceLocation Loc, clang::StringRef Name,
+										  clang::StringRef Value) {
+											return this->PPCallbacks->PragmaDetectMismatch(Loc, Name,Value);
+		}
+
+		/// Callback invoked when a \#pragma clang __debug directive is read.
+		/// \param Loc The location of the debug directive.
+		/// \param DebugType The identifier following __debug.
+		virtual void PragmaDebug(clang::SourceLocation Loc, clang::StringRef DebugType) {
+			return this->PPCallbacks->PragmaDebug(Loc,DebugType);
+		}
+
+		/// Callback invoked when a \#pragma message directive is read.
+		/// \param Loc The location of the message directive.
+		/// \param Namespace The namespace of the message directive.
+		/// \param Kind The type of the message directive.
+		/// \param Str The text of the message directive.
+		virtual void PragmaMessage(clang::SourceLocation Loc, clang::StringRef Namespace,
+								   PragmaMessageKind Kind, clang::StringRef Str) {
+									return this->PPCallbacks->PragmaMessage(Loc,Namespace,Kind,Str);
+		}
+
+		/// Callback invoked when a \#pragma gcc diagnostic push directive
+		/// is read.
+		virtual void PragmaDiagnosticPush(clang::SourceLocation Loc,
+										  clang::StringRef Namespace) {
+											return this->PPCallbacks->PragmaDiagnosticPush(Loc,Namespace);
+		}
+
+		/// Callback invoked when a \#pragma gcc diagnostic pop directive
+		/// is read.
+		virtual void PragmaDiagnosticPop(clang::SourceLocation Loc,
+										 clang::StringRef Namespace) {
+											return this->PPCallbacks->PragmaDiagnosticPop(Loc,Namespace);
+		}
+
+		/// Callback invoked when a \#pragma gcc diagnostic directive is read.
+		virtual void PragmaDiagnostic(clang::SourceLocation Loc, clang::StringRef Namespace,
+									  clang::diag::Severity mapping, clang::StringRef Str) {
+										return this->PPCallbacks->PragmaDiagnostic(Loc,Namespace,mapping,Str);
+									  }
+
+		/// Called when an OpenCL extension is either disabled or
+		/// enabled with a pragma.
+		virtual void PragmaOpenCLExtension(clang::SourceLocation NameLoc,
+										   const clang::IdentifierInfo* Name,
+										   clang::SourceLocation StateLoc, unsigned State) {
+											return this->PPCallbacks->PragmaOpenCLExtension(NameLoc,Name,StateLoc,State);
+		}
+
+		virtual void PragmaWarning(clang::SourceLocation Loc,
+								   PragmaWarningSpecifier WarningSpec,
+								   clang::ArrayRef<int> Ids) {
+									return this->PPCallbacks->PragmaWarning(Loc,WarningSpec,Ids);
+								   }
+
+		/// Callback invoked when a \#pragma warning(push) directive is read.
+		virtual void PragmaWarningPush(clang::SourceLocation Loc, int Level) {
+			return this->PPCallbacks->PragmaWarningPush(Loc,Level);
+		}
+
+		/// Callback invoked when a \#pragma warning(pop) directive is read.
+		virtual void PragmaWarningPop(clang::SourceLocation Loc) {
+			return this->PPCallbacks->PragmaWarningPop(Loc);
+		}
+
+		/// Callback invoked when a \#pragma execution_character_set(push) directive
+		/// is read.
+		virtual void PragmaExecCharsetPush(clang::SourceLocation Loc, clang::StringRef Str) {
+			return this->PPCallbacks->PragmaExecCharsetPush(Loc,Str);
+		}
+
+		/// Callback invoked when a \#pragma execution_character_set(pop) directive
+		/// is read.
+		virtual void PragmaExecCharsetPop(clang::SourceLocation Loc) {
+			return this->PPCallbacks->PragmaExecCharsetPop(Loc);
+		}
+
+		/// Callback invoked when a \#pragma clang assume_nonnull begin directive
+		/// is read.
+		virtual void PragmaAssumeNonNullBegin(clang::SourceLocation Loc) {
+			return this->PPCallbacks->PragmaAssumeNonNullBegin(Loc);
+		}
+
+		/// Callback invoked when a \#pragma clang assume_nonnull end directive
+		/// is read.
+		virtual void PragmaAssumeNonNullEnd(clang::SourceLocation Loc) {
+			return this->PPCallbacks->PragmaAssumeNonNullEnd(Loc);
+		}
+
+		/// Called by Preprocessor::HandleMacroExpandedIdentifier when a
+		/// macro invocation is found.
+		virtual void MacroExpands(const clang::Token& MacroNameTok,
+								  const clang::MacroDefinition& MD, clang::SourceRange Range,
+								  const clang::MacroArgs* Args) {
+									return this->PPCallbacks->MacroExpands(MacroNameTok,MD,Range,Args);
+								  }
+
+		/// Hook called whenever a macro definition is seen.
+		virtual void MacroDefined(const clang::Token& MacroNameTok,
+								  const clang::MacroDirective* MD) {
+									return this->PPCallbacks->MacroDefined(MacroNameTok,MD);
+		}
+
+		/// Hook called whenever a macro \#undef is seen.
+		/// \param MacroNameTok The active Token
+		/// \param MD A MacroDefinition for the named macro.
+		/// \param Undef New MacroDirective if the macro was defined, null otherwise.
+		///
+		/// MD is released immediately following this callback.
+		virtual void MacroUndefined(const clang::Token& MacroNameTok,
+									const clang::MacroDefinition& MD,
+									const clang::MacroDirective* Undef) {
+										return this->PPCallbacks->MacroUndefined(MacroNameTok,MD,Undef);
+		}
+
+		/// Hook called whenever the 'defined' operator is seen.
+		/// \param MD The MacroDirective if the name was a macro, null otherwise.
+		virtual void Defined(const clang::Token& MacroNameTok, const clang::MacroDefinition& MD,
+							 clang::SourceRange Range) {
+								return this->PPCallbacks->Defined(MacroNameTok,MD,Range);
+		}
+
+		/// Hook called when a '__has_embed' directive is read.
+		virtual void HasEmbed(clang::SourceLocation Loc, clang::StringRef FileName, bool IsAngled,
+							  clang::OptionalFileEntryRef File) {
+								return this->PPCallbacks->HasEmbed(Loc,FileName,IsAngled,File);
+							  }
+
+		/// Hook called when a '__has_include' or '__has_include_next' directive is
+		/// read.
+		virtual void HasInclude(clang::SourceLocation Loc, clang::StringRef FileName, bool IsAngled,
+								clang::OptionalFileEntryRef File,
+								clang::SrcMgr::CharacteristicKind FileType) {
+									return this->PPCallbacks->HasInclude(Loc,FileName,IsAngled,File,FileType);
+								}
+
+		/// Hook called when a source range is skipped.
+		/// \param Range The SourceRange that was skipped. The range begins at the
+		/// \#if/\#else directive and ends after the \#endif/\#else directive.
+		/// \param EndifLoc The end location of the 'endif' token, which may precede
+		/// the range skipped by the directive (e.g excluding comments after an
+		/// 'endif').
+		virtual void SourceRangeSkipped(clang::SourceRange Range, clang::SourceLocation EndifLoc) {
+			return this->PPCallbacks->SourceRangeSkipped(Range,EndifLoc);
+		}
+
+		/// Hook called whenever an \#if is seen.
+		/// \param Loc the source location of the directive.
+		/// \param ConditionRange The SourceRange of the expression being tested.
+		/// \param ConditionValue The evaluated value of the condition.
+		///
+		// FIXME: better to pass in a list (or tree!) of Tokens.
+		virtual void If(clang::SourceLocation Loc, clang::SourceRange ConditionRange,
+						ConditionValueKind ConditionValue) {
+							return this->PPCallbacks->If(Loc,ConditionRange,ConditionValue);
+		}
+
+		/// Hook called whenever an \#elif is seen.
+		/// \param Loc the source location of the directive.
+		/// \param ConditionRange The SourceRange of the expression being tested.
+		/// \param ConditionValue The evaluated value of the condition.
+		/// \param IfLoc the source location of the \#if/\#ifdef/\#ifndef directive.
+		// FIXME: better to pass in a list (or tree!) of Tokens.
+		virtual void Elif(clang::SourceLocation Loc, clang::SourceRange ConditionRange,
+						  ConditionValueKind ConditionValue, clang::SourceLocation IfLoc) {
+							return this->PPCallbacks->Elif(Loc,ConditionRange,ConditionValue,IfLoc);
+		}
+
+		/// Hook called whenever an \#ifdef is seen.
+		/// \param Loc the source location of the directive.
+		/// \param MacroNameTok Information on the token being tested.
+		/// \param MD The MacroDefinition if the name was a macro, null otherwise.
+		virtual void Ifdef(clang::SourceLocation Loc, const clang::Token& MacroNameTok,
+						   const clang::MacroDefinition& MD) {
+							return this->PPCallbacks->Ifdef(Loc,MacroNameTok,MD);
+		}
+
+		/// Hook called whenever an \#elifdef branch is taken.
+		/// \param Loc the source location of the directive.
+		/// \param MacroNameTok Information on the token being tested.
+		/// \param MD The MacroDefinition if the name was a macro, null otherwise.
+		virtual void Elifdef(clang::SourceLocation Loc, const clang::Token& MacroNameTok,
+							 const clang::MacroDefinition& MD) {
+								return this->PPCallbacks->Elifdef(Loc,MacroNameTok,MD);
+		}
+		/// Hook called whenever an \#elifdef is skipped.
+		/// \param Loc the source location of the directive.
+		/// \param ConditionRange The SourceRange of the expression being tested.
+		/// \param IfLoc the source location of the \#if/\#ifdef/\#ifndef directive.
+		// FIXME: better to pass in a list (or tree!) of Tokens.
+		virtual void Elifdef(clang::SourceLocation Loc, clang::SourceRange ConditionRange,
+							 clang::SourceLocation IfLoc) {
+								return this->PPCallbacks->Elifdef(Loc,ConditionRange,IfLoc);
+		}
+
+		/// Hook called whenever an \#ifndef is seen.
+		/// \param Loc the source location of the directive.
+		/// \param MacroNameTok Information on the token being tested.
+		/// \param MD The MacroDefiniton if the name was a macro, null otherwise.
+		virtual void Ifndef(clang::SourceLocation Loc, const clang::Token& MacroNameTok,
+							const clang::MacroDefinition& MD) {
+								return this->PPCallbacks->Ifndef(Loc,MacroNameTok,MD);
+		}
+
+		/// Hook called whenever an \#elifndef branch is taken.
+		/// \param Loc the source location of the directive.
+		/// \param MacroNameTok Information on the token being tested.
+		/// \param MD The MacroDefinition if the name was a macro, null otherwise.
+		virtual void Elifndef(clang::SourceLocation Loc, const clang::Token& MacroNameTok,
+							  const clang::MacroDefinition& MD) {
+								return this->PPCallbacks->Elifndef(Loc,MacroNameTok,MD);
+		}
+		/// Hook called whenever an \#elifndef is skipped.
+		/// \param Loc the source location of the directive.
+		/// \param ConditionRange The SourceRange of the expression being tested.
+		/// \param IfLoc the source location of the \#if/\#ifdef/\#ifndef directive.
+		// FIXME: better to pass in a list (or tree!) of Tokens.
+		virtual void Elifndef(clang::SourceLocation Loc, clang::SourceRange ConditionRange,
+							  clang::SourceLocation IfLoc) {
+								return this->PPCallbacks->Elifndef(Loc,ConditionRange,IfLoc);
+		}
+
+		/// Hook called whenever an \#else is seen.
+		/// \param Loc the source location of the directive.
+		/// \param IfLoc the source location of the \#if/\#ifdef/\#ifndef directive.
+		virtual void Else(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
+			return this->PPCallbacks->Else(Loc,IfLoc);
+		}
+
+		/// Hook called whenever an \#endif is seen.
+		/// \param Loc the source location of the directive.
+		/// \param IfLoc the source location of the \#if/\#ifdef/\#ifndef directive.
+		virtual void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
+			return this->PPCallbacks->Endif(Loc,IfLoc);
+		}
+
+		/// Walk owned descendants. For each descendant whose raw pointer satisfies
+		/// `Pred`, release ownership from its owning unique_ptr and append the raw
+		/// pointer to `Released`. Default: leaf — no descendants to walk.
+		virtual void
+		releasePreservedDescendants(llvm::function_ref<bool(clang::PPCallbacks*)> Pred,
+									clang::SmallVectorImpl<clang::PPCallbacks*>& Released) {
+										return this->PPCallbacks->releasePreservedDescendants(Pred, Released);
+									}
+
+		/// Walk the subtree rooted at `CB` (recursing into descendants first), then
+		/// check `CB` itself. Any `CB` whose contents satisfy `Pred` has its
+		/// ownership released and the raw pointer appended to `Released`. After this
+		/// returns, `CB` may be safely reset/destroyed without freeing the released
+		/// pointers.
+		static void releaseIfPreserved(std::unique_ptr<clang::PPCallbacks>& CB,
+									   llvm::function_ref<bool(clang::PPCallbacks*)> Pred,
+									   clang::SmallVectorImpl<clang::PPCallbacks*>& Released) {
+			if(!CB)
+				return;
+			CB->releasePreservedDescendants(Pred, Released);
+			if(Pred(CB.get()))
+				Released.push_back(CB.release());
+		}
+	};
+
+	class DMCRE_PUBLIC_API ClangCompiler {
+		__public class Context {
+			__public clang::FileManager* FileManager = nullptr;
+			__public clang::SourceManager* SourceManager = nullptr;
+			__public clang::DiagnosticsEngine* DiagnosticsEngine = nullptr;
+			__public clang::ASTContext* ASTContext = nullptr;
+			__public clang::Preprocessor* Preprocessor = nullptr;
+			__public clang::HeaderSearch* HeaderSearch = nullptr;
+			__public clang::Sema* Sema = nullptr;
+			__public clang::ASTConsumer* ASTConsumer = nullptr;
+		};
+
+		__public virtual ~ClangCompiler() = default;
+
+		__public virtual clang::DiagnosticsEngine* getDiagnosticsEngine() = 0;
+		__public virtual clang::Preprocessor* getPreprocessor() = 0;
+		__public virtual clang::SourceManager* getSourceManager() = 0;
+		__public virtual clang::ASTContext* getASTContext() = 0;
+		__public virtual clang::Sema* getSema() = 0;
+		__public virtual Context* getContext() = 0;
+
+		__public virtual clang::HeaderSearchOptions* getHeaderSearchOptions() = 0;
+		__public virtual clang::PreprocessorOptions* getPreprocessorOptions() = 0;
+		__public virtual clang::LangOptions* getLanguageOptions() = 0;
+		__public virtual clang::CodeGenOptions* getCodeGenOptions() = 0;
+
+		__public virtual clang::FileID setMainFile(llvm::StringRef Filename, std::unique_ptr<llvm::MemoryBuffer> content) = 0;
+
+		__public virtual std::string getCompilerAndConfigurationId() = 0;
+
+		__public virtual void addASTConsumer(clang::ASTConsumer* ASTConsumer) = 0;
+		__public virtual void addPPCallbacks(clang::PPCallbacks* PPCallbacks) = 0;
+
+
+		__public virtual void addDestructor(std::function<void()> destructor) = 0;
+
+		__public virtual void InitializeSema(clang::CodeCompleteConsumer* CodeCompleteConsumer = nullptr) = 0;
+
+		__public virtual void compile() = 0;
+	};
+}

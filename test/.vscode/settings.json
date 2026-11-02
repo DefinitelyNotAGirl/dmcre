@@ -1,0 +1,11 @@
+{
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"[cpp]": {
+		"editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+	},
+    "files.associations": {
+        "Headers/C++/**/*": "cpp"
+    },
+	"clangd.path": "dmcred",
+	"clangd.restartAfterCrash": false
+}

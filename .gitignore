@@ -1,0 +1,10 @@
+out
+build
+.cache
+compile_commands.json
+node_modules
+.DS_Store
+llvm-project
+dmcred_clangd
+dmcred_old
+dmcred_pipe

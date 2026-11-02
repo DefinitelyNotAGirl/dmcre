@@ -1,0 +1,105 @@
+#pragma once
+
+#include <filesystem>
+
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/VirtualFileSystem.h>
+#include <llvm/IR/Module.h>
+
+#include <clang/Basic/SourceManager.h>
+#include <clang/Basic/FileManager.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Basic/TargetInfo.h>
+#include <clang/Lex/HeaderSearchOptions.h>
+#include <clang/Lex/Preprocessor.h>
+#include <clang/Lex/PreprocessorOptions.h>
+
+#include <dmcre/console>
+#include <dmcre/compile>
+
+namespace dmcre::load {
+	DMCRE_PUBLIC_API void initialize();
+
+	DMCRE_PUBLIC_API extern llvm::LLVMContext llvmContext;
+
+	DMCRE_PUBLIC_API extern std::unique_ptr<llvm::orc::LLJIT> llvmJIT;
+
+	DMCRE_PUBLIC_API extern const std::vector<std::string> CxxSystemIncludeDirectories;
+
+	enum class Domain {
+		System, // dmcre installation directory
+		WorkingDirectory, // cwd
+		User, // user home directory
+		Absolute // absolute path
+	};
+
+	DMCRE_PUBLIC_API std::filesystem::path ResolvePath(Domain domain,std::filesystem::path path);
+
+	class FileSpecifier {
+		__public Domain domain;
+		__public std::filesystem::path path;
+	};
+
+	DMCRE_PUBLIC_API bool hasErrors();
+
+	namespace module {
+		DMCRE_PUBLIC_API void ToProcess(std::string name);
+	}
+
+	namespace llvm_IR {
+		namespace config {
+		}
+
+		DMCRE_PUBLIC_API bool CheckCacheValidity(llvm::Module* module);
+
+		DMCRE_PUBLIC_API llvm::Module* ToModule(std::string code,std::string name);
+		DMCRE_PUBLIC_API llvm::Module* ToModule(Domain domain,std::filesystem::path path);
+
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(std::string code,std::string name);
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(Domain domain,std::filesystem::path path);
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(std::vector<FileSpecifier> files,std::string name);
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(std::vector<llvm::Module*> modules,std::string name);
+	}
+
+	namespace cxx {
+		namespace config {
+			DMCRE_PUBLIC_API extern clang::CodeGenOptions CodeGenOptions;
+			DMCRE_PUBLIC_API extern clang::HeaderSearchOptions HeaderSearchOptions;
+
+			DMCRE_PUBLIC_API extern clang::PreprocessorOptions PreprocessorOptions;
+			DMCRE_PUBLIC_API extern clang::LangOptions LanguageOptions;
+		}
+
+		namespace internals {
+			DMCRE_PUBLIC_API extern clang::FileSystemOptions FileSystemOptions;
+			DMCRE_PUBLIC_API extern clang::DiagnosticOptions DiagnosticOptions;
+
+			DMCRE_PUBLIC_API extern clang::FileManager* FileManager;
+			DMCRE_PUBLIC_API extern clang::SourceManager* SourceManager;
+			DMCRE_PUBLIC_API extern clang::DiagnosticsEngine* DiagnosticsEngine;
+			DMCRE_PUBLIC_API extern clang::TargetInfo* TargetInfo;
+		}
+
+		DMCRE_PUBLIC_API void initialize();
+
+		DMCRE_PUBLIC_API compile::ClangCompiler* GetCompiler();
+		DMCRE_PUBLIC_API compile::ClangCompiler* GetCompilerForLanguageServer(
+			clang::DiagnosticsEngine* DiagnosticsEngine,
+			clang::SourceManager* SourceManager,
+			clang::FileManager* FileManager,
+			clang::HeaderSearchOptions* HeaderSearchOptions,
+			clang::PreprocessorOptions* PreprocessorOptions,
+			clang::LangOptions* LanguageOptions,
+			clang::TargetInfo* TargetInfo,
+			clang::CodeGenOptions* CodeGenOptions,
+			std::function<void()> onDestroy
+		);
+
+		DMCRE_PUBLIC_API llvm::Module* ToModule(std::string code,std::string name);
+		DMCRE_PUBLIC_API llvm::Module* ToModule(Domain domain,std::filesystem::path path);
+
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(std::string code,std::string name);
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(Domain domain,std::filesystem::path path);
+		DMCRE_PUBLIC_API llvm::orc::JITDylib* ToProcess(std::vector<FileSpecifier> files,std::string name);
+	}
+}

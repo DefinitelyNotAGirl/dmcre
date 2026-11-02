@@ -1,0 +1,27 @@
+//
+//  IOStream.hpp
+//  dmcre
+//
+//  Created by Lilith on 07.04.26.
+//
+
+#pragma once
+
+#include <dmcre/istream>
+#include <dmcre/ostream>
+#include <dmcre/string>
+
+namespace dmcre {
+	class IOStream: public IStream, public OStream {
+	public:
+		virtual void close() override = 0;
+		
+		virtual operator String() {
+			#if not defined(DMCRE_NO_RTTI)
+				return String("<anonymous ")+typeid(IOStream).name()+">";
+			#else
+				return String("<anonymous dmcre::IOStream>");
+			#endif
+		}
+	};
+}

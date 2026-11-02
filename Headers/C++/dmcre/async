@@ -1,0 +1,77 @@
+//
+//  Thread.hpp
+//  dmcre
+//
+//  Created by Lilith on 07.04.26.
+//
+
+#pragma once
+
+#include <atomic>
+#include <functional>
+#include <thread>
+#include <dmcre/foundation>
+#include <dmcre/ARC>
+
+namespace dmcre {
+	class DMCRE_PUBLIC_API Mutex {
+		std::atomic<UInt64> data { 0 };
+
+	public:
+		void wakeOne() {
+			data.notify_one();
+		}
+
+		void wakeAll() {
+			data.notify_all();
+		}
+		
+		UInt64 get() const {
+			return data.load(std::memory_order_acquire);
+		}
+
+		void set(UInt64 value) {
+			data.store(value, std::memory_order_release);
+		}
+
+		void wait(std::function<bool()> predicate) const {
+			UInt64 expected = data.load(std::memory_order_acquire);
+			while (!predicate()) {
+				data.wait(expected, std::memory_order_acquire);
+				expected = data.load(std::memory_order_acquire);
+			}
+		}
+	};
+	
+	class DMCRE_PUBLIC_API Task: public ARC::Object {
+		Mutex mutex;
+
+	public:
+		
+		Task() {
+			mutex.set(0);
+		}
+		
+		void wake() {
+			mutex.set(1);
+			mutex.wakeAll();
+		}
+
+		void await() {
+			mutex.wait([&]{
+				return mutex.get() != 0;
+			});
+		}
+	};
+
+	class DMCRE_PUBLIC_API DispatchQueue {
+	public:
+		virtual ARC::Reference<Task> dispatch(std::function<void()> f) = 0;
+
+		virtual void enforceExecutionContext() = 0;
+	};
+	
+#if false
+	DispatchQueue& mainDispatchQueue();
+#endif
+}
